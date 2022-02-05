@@ -15,6 +15,9 @@ def random_crop(img, size):
     w = len(img[0])
     h = len(img)
     print(f'Image size: {w}x{h}')
+
+    if sz <= 0 or sz > min(w,h)):
+        sys.exit("Crop size not within range of image size")
     
     #generate random center point based on crop size
     center_w = random.randint(size, w-size-1)
@@ -30,7 +33,7 @@ def random_crop(img, size):
 def extract_patch(img, num_patches):
     return
 
-#3. Resizes an image
+#3. Resizes an image based on scale factor, resized using nearest neighbor interpolation
 def resize_img(img, factor):
     return
 
@@ -44,8 +47,8 @@ sz = int(input('Enter crop size: '))
 image = io.imread(filename)
 img_arr = np.asarray(image)
 
-if sz > 0 and sz <= min(len(img_arr), len(img_arr[0])):
-    crop = random_crop(image, sz)
-    io.imsave("randomcrop.jpg", crop)
-else:
-    sys.exit("Crop size not within range of image size")
+crop = random_crop(image, sz)
+io.imsave("randomcrop.jpg", crop)
+print("Random crop saved!")
+
+patch_num = int(input('Enter the number of patches: '))
