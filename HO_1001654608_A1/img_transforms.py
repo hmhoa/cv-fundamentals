@@ -14,10 +14,12 @@ def random_crop(img, size):
     #get width and length of img
     w = len(img[0])
     h = len(img)
+    print(f'Image size: {w}x{h}')
     
     #generate random center point based on crop size
     center_w = random.randint(size, w-size-1)
     center_h = random.randint(size, h-size-1)
+    print(f'Random center point chosen: ({center_w},{center_h})')
 
     #square crop image with random center location from which to crop
     img_crop = img[(center_w-size):(center_w+size), (center_h-size):(center_h+size)]
@@ -26,15 +28,18 @@ def random_crop(img, size):
 
 #2. Patch extraction
 def extract_patch(img, num_patches):
+    return
 
 #3. Resizes an image
 def resize_img(img, factor):
+    return
 
 #4. Randomly perturbs the HSV values on an input image by an amount no greater than the given input value
 def color_jitter(img, hue, saturation, value):
+    return
 
 filename = input('Enter image name: ')
-sz = input('Enter crop size: ')
+sz = int(input('Enter crop size: '))
 
 image = io.imread(filename)
 img_arr = np.asarray(image)

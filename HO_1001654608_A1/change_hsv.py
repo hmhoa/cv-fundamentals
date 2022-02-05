@@ -20,15 +20,15 @@ def RGBtoHSV(image):
     for i in range(row):
         for j in range(col):
             #grab rgb values from each channel of the current pixel and normalize them to be in range [0,1]
-            r = image[i, j, 0] / 255
-            g = image[i, j, 1] / 255
-            b = image[i, j, 2] / 255
+            r = round(image[i, j, 0]/255, 2)
+            g = round(image[i, j, 1]/255, 2)
+            b = round(image[i, j, 2]/255, 2)
 
             #calculate value
-            v = np.max(image[i, j])
+            v = round(np.max(image[i, j])/255, 2)
 
             #compute chroma
-            c = v - np.min(image[i, j])
+            c = v - round(np.min(image[i, j])/255, 2)
             
             #compute saturation
             if v == 0:
