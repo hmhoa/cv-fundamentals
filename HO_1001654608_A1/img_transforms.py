@@ -118,29 +118,33 @@ def color_jitter(img, hue, saturation, value):
 
     return jittered_img
 
-
 #testing outputs
-#using same first image for all tests
-filename = input('Enter image name: ')
-image = io.imread(filename)
+def main():
+    
+    #using same first image for all tests
+    filename = input('Enter image name: ')
+    image = io.imread(filename)
 
-sz = int(input('Enter crop size: '))
-crop = random_crop(image, sz)
-io.imshow(crop)
-io.show()
+    sz = int(input('Enter crop size: '))
+    crop = random_crop(image, sz)
+    io.imshow(crop)
+    io.show()
 
-patch_num = int(input('Enter the number of patches: '))
-patched, n = extract_patch(image, patch_num)
-print(f'Total number of patches: {n}')
+    patch_num = int(input('Enter the number of patches: '))
+    patched, n = extract_patch(image, patch_num)
+    print(f'Total number of patches: {n}')
 
-scale = int(input('Enter resize scale factor (in percent %): '))
-resized = resize_img(image, scale)
-io.imshow(resized)
-io.show()
+    scale = int(input('Enter resize scale factor (in percent %): '))
+    resized = resize_img(image, scale)
+    io.imshow(resized)
+    io.show()
 
-h = int(input('Enter the hue: '))
-s = float(input('Enter the saturation: '))
-v = float(input('Enter the value: '))
-jittered = color_jitter(image, h, s, v)
-io.imshow(jittered)
-io.show()
+    h = int(input('Enter the hue: '))
+    s = float(input('Enter the saturation: '))
+    v = float(input('Enter the value: '))
+    jittered = color_jitter(image, h, s, v)
+    io.imshow(jittered)
+    io.show()
+
+if __name__ == "__main__":
+    main()

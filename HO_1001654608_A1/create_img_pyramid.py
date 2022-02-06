@@ -25,12 +25,14 @@ def create_pyramid(fname, img, height):
     scale = 1
     for i in range(1,height):
         scale = scale*2
+        print(scale)
 
         #resize_img functions takes a factor in percents, convert to percent when calling the function
-        percent_factor = (h // (scale*h))*100
+        percent_factor = int((h / (scale*h))*100)
+        print(percent_factor)
         resized_copy = resize_img(img, percent_factor)
         pyramid.append(resized_copy)
-        io.imsave(image_file[0] + str(scale) + "x" + image_file[1])
+        io.imsave(image_file[0] + str(scale) + "x" + image_file[1], resized_copy)
 
     
     #combined image of resized copies including original image to display an image pyramid
@@ -43,17 +45,26 @@ def create_pyramid(fname, img, height):
     #each cpy in pyramid is a resized copy image
     for cpy in  pyramid[1:]:
         cpy_row, cpy_col = cpy.shape[:2]
-        combined_img[row:row+cpy_row, col:col+cpy_col, :] = cpy
+        combined_img[row:row+cpy_row, w:w+cpy_col, :] = cpy
         row += cpy_row
 
+    #normalizing the values and ensuring within [0,255] range as integers
+    combined_img = combined_img.astype(np.float64) / 255
+    combined_img = 255 * combined_img
+    combined_img = combined_img.astype(int)
+
     return combined_img
-    
-filename = input('Enter image name: ')
-image = io.imread(filename)
 
-pyramid_height = int(input('Enter the image pyramid height: '))
+def main():
+    filename = input('Enter image name: ')
+    image = io.imread(filename)
 
-img_pyramid = create_pyramid(image, pyramid_height)
+    pyramid_height = int(input('Enter the image pyramid height: '))
 
-io.imshow(img_pyramid)
-io.show()
+    img_pyramid = create_pyramid(filename, image, pyramid_height)
+
+    io.imshow(img_pyramid)
+    io.show()
+
+if __name__ == "__main__":
+    main()
