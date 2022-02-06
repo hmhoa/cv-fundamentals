@@ -4,12 +4,16 @@
 #Due February 9, 2022
 
 import numpy as np
+from numpy.lib import stride_tricks
 import skimage.io as io
 import skimage.color as color
 import skimage.transform as transform
 from skimage import img_as_ubyte
 import sys
 import random
+
+#for hsv function in other code
+from change_hsv import *
 
 #1. Generate random square crop of an image
 def random_crop(img, size):
@@ -31,9 +35,24 @@ def random_crop(img, size):
 
     return img_crop
 
-#2. Patch extraction
+#2. Patch extraction, returns n^2 non-overlapping patches given an input image as a numpy array as well as an integer n that is the total number of patches made
+#Assumed input image is a square
 def extract_patch(img, num_patches):
-    return
+    #non-overlapping patches of size n
+    h, w = img.shape[:2] #unpack height and width
+    n = num_patches*num_patches
+    shape = [h // num_patches, w // num_patches] + [num_patches,num_patches]
+    print(shape)
+
+    #(row, col, patch_row, patch_col)
+    #:2 grabs all the elements up to not including index 2
+    strides = [num_patches * s for s in img.strides[:2]] + list(img.strides[:2])
+    print(strides)
+    #extract patches
+    #specify shape and strides to define hwo tor traverse the array for viewing (as patches in this case)
+    patches = stride_tricks.as_strided(img, shape=shape, strides=strides)
+
+    return patches, n
 
 #3. Resizes an image based on scale factor, resized using nearest neighbor interpolation
 #assuming integer representing the scale factor is greater than 0 and is a percentage %
@@ -64,22 +83,65 @@ def resize_img(img, factor):
     return resized_img
 
 #4. Randomly perturbs the HSV values on an input image by an amount no greater than the given input value
+#Assuming hue, saturation, and value given are positive values
 def color_jitter(img, hue, saturation, value):
-    return
+    w = np.size(img, axis=1)
+    h = np.size(img, axis=0)
+    jittered_img = RGBtoHSV(img)
 
+    #validate inputs
+    if hue < 0 or hue > 360:
+        sys.exit("Hue input is not within 0 to 360 degrees.")
+    if saturation < 0 or saturation > 1:
+        sys.exit("Saturation input is not within 0 to 1")
+    if value < 0 or value > 1:
+        sys.exit("Value input is not within 0 to 1")
+
+    #randomly select value no greater than the given input value range from hue, saturation, and value
+    rand_h = random.randint((-1*hue), hue)
+    rand_s = random.uniform((-1*saturation), saturation)
+    rand_v = random.uniform((-1*value), value)
+
+    #do hsv modifications
+    jittered_img[:,:,0] += rand_h
+    jittered_img[:,:,1] += rand_s
+    jittered_img[:,:,2] += rand_v
+
+    #modified values exceed range for HSV values, so cap them at the max allowed
+    jittered_img[jittered_img[:,:,0] > 360] = 360
+    jittered_img[jittered_img[:,:,1] > 1] = 1
+    jittered_img[jittered_img[:,:,2] > 1] = 1
+
+    #modified values fall below range for HSV values, so cap them at the min allowed
+    jittered_img[jittered_img[:,:,:] < 0] = 0
+
+    #turn back into RGB
+    jittered_img = HSVtoRGB(jittered_img)
+
+    return jittered_img
+
+
+#testing outputs
 filename = input('Enter image name: ')
 image = io.imread(filename)
 
+#sz = int(input('Enter crop size: '))
+#crop = random_crop(image, sz)
+#io.imshow(crop)
+#io.show()
 
-sz = int(input('Enter crop size: '))
-crop = random_crop(image, sz)
-io.imshow(crop)
-io.show()
+#patch_num = int(input('Enter the number of patches: '))
+#patched, n = extract_patch(image, patch_num)
+#print(f'Total number of patches: {n}')
 
-patch_num = int(input('Enter the number of patches: '))
-patched = extract_patch(image, patch_num)
+#scale = int(input('Enter resize scale factor (in percent %): '))
+#resized = resize_img(image, scale)
+#io.imshow(resized)
+#io.show()
 
-scale = int(input('Enter resize scale factor (in percent %): '))
-resized = resize_img(image, scale)
-io.imshow(resized)
+h = int(input('Enter the hue: '))
+s = float(input('Enter the saturation: '))
+v = float(input('Enter the value: '))
+jittered = color_jitter(image, h, s, v)
+io.imshow(jittered)
 io.show()
