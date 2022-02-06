@@ -6,8 +6,6 @@
 import numpy as np
 from numpy.lib import stride_tricks
 import skimage.io as io
-import skimage.color as color
-import skimage.transform as transform
 from skimage import img_as_ubyte
 import sys
 import random
@@ -18,8 +16,8 @@ from change_hsv import *
 #1. Generate random square crop of an image
 def random_crop(img, size):
     #get width and length of img
-    w = np.size(img, axis=1)
-    h = np.size(img, axis=0)
+    w = np.size(img, axis=1) #columns
+    h = np.size(img, axis=0) #rows
     print(f'Image size: {w}x{h}')
 
     if sz <= 0 or sz > min(w,h):
@@ -122,22 +120,23 @@ def color_jitter(img, hue, saturation, value):
 
 
 #testing outputs
+#using same first image for all tests
 filename = input('Enter image name: ')
 image = io.imread(filename)
 
-#sz = int(input('Enter crop size: '))
-#crop = random_crop(image, sz)
-#io.imshow(crop)
-#io.show()
+sz = int(input('Enter crop size: '))
+crop = random_crop(image, sz)
+io.imshow(crop)
+io.show()
 
-#patch_num = int(input('Enter the number of patches: '))
-#patched, n = extract_patch(image, patch_num)
-#print(f'Total number of patches: {n}')
+patch_num = int(input('Enter the number of patches: '))
+patched, n = extract_patch(image, patch_num)
+print(f'Total number of patches: {n}')
 
-#scale = int(input('Enter resize scale factor (in percent %): '))
-#resized = resize_img(image, scale)
-#io.imshow(resized)
-#io.show()
+scale = int(input('Enter resize scale factor (in percent %): '))
+resized = resize_img(image, scale)
+io.imshow(resized)
+io.show()
 
 h = int(input('Enter the hue: '))
 s = float(input('Enter the saturation: '))
