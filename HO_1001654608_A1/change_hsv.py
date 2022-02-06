@@ -12,23 +12,23 @@ import sys
 #convert rgb image to hsv
 def RGBtoHSV(image):
     
-    row = len(image)
-    col = len(image[0])
+    row = np.size(image, axis=0)
+    col = np.size(image, axis=1)
     hsv_img = np.zeros((row,col,3))
 
     #iterate through each pixel in the image
     for i in range(row):
         for j in range(col):
             #grab rgb values from each channel of the current pixel and normalize them to be in range [0,1]
-            r = round(image[i, j, 0]/255, 2)
-            g = round(image[i, j, 1]/255, 2)
-            b = round(image[i, j, 2]/255, 2)
+            r = image[i, j, 0]/255
+            g = image[i, j, 1]/255
+            b = image[i, j, 2]/255
 
             #calculate value
-            v = round(np.max(image[i, j])/255, 2)
+            v = np.max(image[i, j])/255
 
             #compute chroma
-            c = v - round(np.min(image[i, j])/255, 2)
+            c = v - np.min(image[i, j])/255
             
             #compute saturation
             if v == 0:
@@ -40,11 +40,11 @@ def RGBtoHSV(image):
             if c == 0:
                 h_prime = 0
             elif v == r:
-                h_prime = ((g-b)/c)%6
+                h_prime = round(((g-b)/c)%6, 2)
             elif v == g:
-                h_prime = ((b-r)/c)+2
+                h_prime = round(((b-r)/c)+2, 2)
             elif v == b:
-                h_prime = ((r-b)/c)+4
+                h_prime = round(((r-b)/c)+4, 2)
             h = 60 * h_prime
 
             #change to hsv values
@@ -57,8 +57,8 @@ def RGBtoHSV(image):
 #1.2 HSV to RGB
 #convert hsv image to rgb
 def HSVtoRGB(image):
-    row = len(image)
-    col = len(image[0])
+    row = np.size(image, axis=0)
+    col = np.size(image, axis=1)
     rgb_img = np.zeros((row,col,3))
 
     #iterate through each pixel in the image
@@ -115,9 +115,7 @@ def main(args):
     print(args)
 
     file_name = args[1]
-    img = io.imread(file_name)
-    #img represented as a numpy array
-    img_arr = np.asarray(img)
+    img = io.imread(file_name) #skimage img already represented as a numpy array
 
     #assuming inputs are integer numbers
     hue = int(args[2])
@@ -133,11 +131,11 @@ def main(args):
         sys.exit("Value input is not within 0 to 1")
     
     #convert to hsv
-    print("Converting to HSV")
-    hsv_img = RGBtoHSV(img_arr)
+    print("Converting to HSV...")
+    hsv_img = RGBtoHSV(img)
 
-    #do hsv modifications
-    print("Doing HSV modifications")
+    #do hsv modifications - assumed that we are doing increase changes
+    print("Doing HSV modifications...")
     if hue > 0:
         hsv_img[:,:,0] += hue
     if saturation > 0:
@@ -151,7 +149,7 @@ def main(args):
     hsv_img[hsv_img[:,:,2] > 1] = 1
 
     #convert back to rgb
-    print("Converting to RGB")
+    print("Converting to RGB...")
     new_rgb_img = img_as_ubyte(HSVtoRGB(hsv_img))
 
     #save modified image
