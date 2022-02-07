@@ -20,7 +20,7 @@ def random_crop(img, size):
     h = np.size(img, axis=0) #rows
     print(f'Image size: {w}x{h}')
 
-    if sz <= 0 or sz > min(w,h):
+    if size <= 0 or size > min(w,h):
         sys.exit("Crop size not within range of image size")
     
     #generate random center point based on crop size
@@ -133,7 +133,7 @@ def main():
     patched, n = extract_patch(image, patch_num)
     print(f'Total number of patches: {n}')
 
-    scale = float(input('Enter resize scale factor (in percent %): '))
+    scale = float(input('Enter resize scale factor: '))
     resized = resize_img(image, scale)
     io.imshow(resized)
     io.show()
