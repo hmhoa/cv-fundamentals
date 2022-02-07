@@ -28,9 +28,9 @@ def create_pyramid(fname, img, height):
         print(scale)
 
         #resize_img functions takes a factor in percents, convert to percent when calling the function
-        percent_factor = int((h / (scale*h))*100)
-        print(percent_factor)
-        resized_copy = resize_img(img, percent_factor)
+        factor = int(1/scale)
+        print(factor)
+        resized_copy = resize_img(img, factor)
         pyramid.append(resized_copy)
         io.imsave(image_file[0] + str(scale) + "x" + image_file[1], resized_copy)
 

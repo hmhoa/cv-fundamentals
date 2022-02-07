@@ -53,24 +53,23 @@ def extract_patch(img, num_patches):
     return patches, n
 
 #3. Resizes an image based on scale factor, resized using nearest neighbor interpolation
-#assuming integer representing the scale factor is greater than 0 and is a percentage %
+#assuming number representing the scale factor is greater than 0
 def resize_img(img, factor):
     orig_w = np.size(img, axis=1)
     orig_h = np.size(img, axis=0)
-    scale = factor / 100
-    new_w = (int)(orig_w * scale)
-    new_h = (int)(orig_h * scale)
+    new_w = (int)(orig_w * factor)
+    new_h = (int)(orig_h * factor)
 
     print(f'Original image size: {orig_w}x{orig_h}')
     print(f'Resized image size: {new_w}x{new_h}')
-    print(f'Scale factor: {scale}')
+    print(f'Scale factor: {factor}')
     
     resized_img = np.zeros((new_h, new_w, 3))
 
     for i in range(new_h):
         for j in range(new_w):
-            mapping_x = (int)(i/scale)
-            mapping_y = (int)(j/scale)
+            mapping_x = (int)(i/factor)
+            mapping_y = (int)(j/factor)
             resized_img[i,j,:] = img[mapping_x,mapping_y,:]
 
     #normalizing the values and ensuring within [0,255] range as integers
@@ -134,7 +133,7 @@ def main():
     patched, n = extract_patch(image, patch_num)
     print(f'Total number of patches: {n}')
 
-    scale = int(input('Enter resize scale factor (in percent %): '))
+    scale = float(input('Enter resize scale factor (in percent %): '))
     resized = resize_img(image, scale)
     io.imshow(resized)
     io.show()
