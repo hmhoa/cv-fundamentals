@@ -84,6 +84,7 @@ def resize_img(img, factor):
 def color_jitter(img, hue, saturation, value):
     w = np.size(img, axis=1)
     h = np.size(img, axis=0)
+    print("Converting to HSV...")
     jittered_img = RGBtoHSV(img)
 
     #validate inputs
@@ -113,6 +114,7 @@ def color_jitter(img, hue, saturation, value):
     jittered_img[jittered_img[:,:,:] < 0] = 0
 
     #turn back into RGB
+    print("Converting to RGB...")
     jittered_img = HSVtoRGB(jittered_img)
 
     return jittered_img
