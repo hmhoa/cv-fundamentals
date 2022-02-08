@@ -40,12 +40,12 @@ def extract_patch(img, num_patches):
     h, w = img.shape[:2] #unpack height and width
     n = num_patches*num_patches
     shape = [h // num_patches, w // num_patches] + [num_patches,num_patches]
-    print(shape)
+    print(f'Shape: {shape}')
 
     #(row, col, patch_row, patch_col)
     #:2 grabs all the elements up to not including index 2
     strides = [num_patches * s for s in img.strides[:2]] + list(img.strides[:2])
-    print(strides)
+    print(f'Strides: {strides}')
     #extract patches
     #specify shape and strides to define hwo tor traverse the array for viewing (as patches in this case)
     patches = stride_tricks.as_strided(img, shape=shape, strides=strides)
