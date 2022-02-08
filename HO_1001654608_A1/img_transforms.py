@@ -87,7 +87,7 @@ def color_jitter(img, hue, saturation, value):
     print("Converting to HSV...")
     jittered_img = RGBtoHSV(img)
 
-    #validate inputs
+    #validate inputs**
     if hue < 0 or hue > 360:
         sys.exit("Hue input is not within 0 to 360 degrees.")
     if saturation < 0 or saturation > 1:
@@ -133,6 +133,7 @@ def main():
 
     patch_num = int(input('Enter the number of patches: '))
     patched, n = extract_patch(image, patch_num)
+    print(f'Patches array returned: {patched}')
     print(f'Total number of patches: {n}')
 
     scale = float(input('Enter resize scale factor: '))
