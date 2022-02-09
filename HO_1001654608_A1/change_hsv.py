@@ -40,11 +40,11 @@ def RGBtoHSV(image):
             if c == 0:
                 h_prime = 0
             elif v == r:
-                h_prime = round(((g-b)/c)%6, 2)
+                h_prime = ((g-b)/c)%6
             elif v == g:
-                h_prime = round(((b-r)/c)+2, 2)
+                h_prime = ((b-r)/c)+2
             elif v == b:
-                h_prime = round(((r-b)/c)+4, 2)
+                h_prime = ((r-g)/c)+4
             h = 60 * h_prime
 
             #change to hsv values
@@ -86,7 +86,7 @@ def HSVtoRGB(image):
                 rgb_prime = (0,x,c)
             elif h_prime >= 4 and h_prime < 5:
                 rgb_prime = (x,0,c)
-            elif h_prime >= 5 and h_prime <= 6:
+            elif h_prime >= 5 and h_prime < 6:
                 rgb_prime = (c,0,x)
             
             #calculate final rgb value
