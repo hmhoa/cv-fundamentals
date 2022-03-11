@@ -144,7 +144,13 @@ def compute_affine_transform(dst_points, src_points):
     # a = src_matrix
     # b = dst_matrix
     # this should return a tuple containing the solution, residuals (the sum), rank (matrix rank of input a), and singular values of input a
-    solution, residuals, rank, singular_vals = np.linalg.lstsq(src_matrix, dst_matrix)
+    # solution, residuals, rank, singular_vals = np.linalg.lstsq(src_matrix, dst_matrix)
+    
+    # alternative method - solved analytically using normal equations
+    src_inv = np.linalg.pinv(src_matrix.T @ src_matrix)
+    solution = src_inv @ src_matrix.T @ dst_matrix
+
+    print(f'\nSolution matrix: {solution}')
 
     # construct the affine transformation matrix
     # the third row 0 0 1 indicates it is an affine transformation
@@ -209,7 +215,13 @@ def compute_projective_transform(dst_points, src_points):
     # a = src_matrix
     # b = dst_matrix
     # this should return a tuple containing the solution, residuals (the sum), rank (matrix rank of input a), and singular values of input a
-    solution, residuals, rank, singular_vals = np.linalg.lstsq(src_matrix, dst_matrix)
+    # solution, residuals, rank, singular_vals = np.linalg.lstsq(src_matrix, dst_matrix)
+    
+    # alternative method - solved analytically using normal equations
+    src_inv = np.linalg.pinv(src_matrix.T @ src_matrix)
+    solution = src_inv @ src_matrix.T @ dst_matrix
+
+    print(f'\nSolution matrix: {solution}')
 
     # construct the affine transformation matrix
     # the third row 0 0 1 indicates it is an affine transformation
@@ -315,8 +327,9 @@ def main():
                         [cols, rows, 1]
                        ])
     
-    affine_mtx = compute_affine_transform(dst_matches, src_matches)
-    corners_proj = (affine_mtx @ corners.T).T # transform corner points
+    #affine_mtx = compute_affine_transform(dst_matches, src_matches)
+    projective_mtx = compute_projective_transform(dst_matches, src_matches)
+    corners_proj = (projective_mtx @ corners.T).T # transform corner points
     all_corners = np.vstack((corners_proj[:, :2], corners[:, :2])) # stack projected corners with original corners - to determine actual new image boundaries are that are stretched in order to accomodate
     corner_min = np.min(all_corners, axis=0)
     corner_max = np.max(all_corners, axis=0)
@@ -328,7 +341,7 @@ def main():
     offset = SimilarityTransform(translation=-corner_min)
     dst_warped = warp(dst_img_rgb, offset.inverse, output_shape=output_shape) # still need to warp destination image because destination image is with respect to its original image size so translate into leftmost corner
 
-    tf_img = warp(src_img_rgb, (affine_mtx + offset), output_shape=output_shape)
+    tf_img = warp(src_img_rgb, (projective_mtx + offset), output_shape=output_shape)
 
     # combine the images
     foreground_pixels = tf_img[tf_img > 0]
@@ -344,10 +357,6 @@ def main():
     # perspective_mtx = compute_projective_transform(dst_matches, src_matches)
     # corners_perspective_proj = (perspective_mtx @ corners.T).T # transform corner points
     # corners_perspective_proj[:, :2] /= corners_perspective_proj[:, 2, None] # divide by the w in perspective projection - None added to ensure 3rd value divides both x and y values
-
-
-    
-
 
 if __name__ == "__main__":
     main()
