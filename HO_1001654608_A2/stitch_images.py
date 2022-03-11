@@ -38,10 +38,12 @@ def match(keypoints1, keypoints2):
     # using brute force and calculating the lowest matches using euclidean distance
     # outer loop iterates through each keypoint in keypoints1
     # kp = keypoint, so kp1 is a keypoint from keypoints 1 and kp2 is a keypoint from keypoints 2
-    smallest_distance = float_info.max
-    i, j = 0
-
+    i = 0
     for kp1 in keypoints1:
+        #reset indices counter and smallest distance for next keypoint to analyze
+        j = 0
+        smallest_distance = float_info.max
+        
         # iterate through each keypoint in keypoints2 and find the smallest euclidean distance of kp1 and kp2
         for kp2 in keypoints2:
             distance = sqrt(((kp2[0]-kp1[0])**2)+((kp2[1]-kp1[1])**2)) #calculate euclidean distance of the current keypoint pair
@@ -50,11 +52,12 @@ def match(keypoints1, keypoints2):
                 #update current indices of matching feature pair
                 matching_pair = (i,j)
             j += 1
-        #append this matching_pair to the matches list
-        matches.append(matching_pair)
+        #append this matching_pair to the matches list if it is not already in the list
+        if matching_pair not in matches:
+            matches.append(matching_pair)
 
-        #reset indices counter
-        j = 0
+        #increment to track which keypoint/index we are on for keypoints1
+        i += 1
 
     return matches
     
@@ -110,9 +113,14 @@ def main():
     src_keypoints = src_detector.keypoints
     src_descriptors = src_detector.descriptors
 
+    print(f'Destination Keypoints ({np.size(dst_keypoints, axis=0)} keypoints):')
+    print(dst_keypoints)
+    print(f'\nSource Keypoints ({np.size(src_keypoints, axis=0)}):')
+    print(src_keypoints)
+
     # 2 Keypoint Matching
     matches = match(dst_keypoints, src_keypoints)
-    print('Matches found (i,j):')
+    print(f'\n{len(matches)} Matches found (i,j):')
     print(matches)
 
     
