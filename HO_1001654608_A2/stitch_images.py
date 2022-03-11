@@ -23,15 +23,15 @@ from skimage import measure
 
 
 # 2 Keypoint Matching
-# feature1, feature2 - set of keypoint features from dst and src images respectively
+# dest_features, src_features - set of keypoint features from dst and src images respectively
 # keypoints represented as a (N,2) array. Keypoint coordinates as (row, col)
+# keypoint feature descriptors are represented as a (N, n_hist*n_hist*n_ori) array
 # returns a list of indices of matching feature pairs where a pair (i,j) in the list indicates a match between the feature at index i in the src image with the feature at index j in the second image
 def match(dst_features, src_features):
     #list of pairs [i,j] of matching keypoints
     matches = []
 
-    dst_descriptors = dst_features.descriptors # represented as a (N, n_hist*n_hist*n_ori) array; vector of all values of histograms
-
+    dst_descriptors = dst_features.descriptors #vector of all values of histograms
     src_descriptors = src_features.descriptors
 
     # using brute force and calculating the lowest matches using euclidean distance
@@ -80,19 +80,23 @@ def plot_matches(dst_image, src_image, dst_kp_matches, src_kp_matches):
     # plot the points and connect them
     num_matches = len(dst_kp_matches)
 
-    for i in range(5):
+    for i in range(num_matches):
         # retrieve the points
         dst_point = (dst_kp_matches[i,1], dst_kp_matches[i,0])
         src_point = (src_kp_matches[i,1], src_kp_matches[i,0])
 
         #pass a list of two matching keypoints we want to connect to plt.plot
-        plt.plot([dst_point[0], src_point[0]+width], [dst_point[1],src_point[1]], 'r-o') # ro- specifies we want to plot red marker with a line connecting the two points
+        plt.plot([dst_point[0], src_point[0]+width], [dst_point[1],src_point[1]], 'ro-') # ro- specifies we want to plot red marker with a line connecting the two points
 
     #to get rid of the warning: Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers).
-    if type(combined_img) is float:
-        combined_img = combined_img/np.amax(combined_img)
-    elif type(combined_img) is int:
-        combined_img = np.array(combined_img/np.amax(combined_img)*255, np.int32)
+    
+   
+    
+    element_type = str(combined_img[0].dtype) # get a string that says what type each element in the image is (float or int)
+    if 'float' in element_type: # is the array elements' type considered a float?
+        combined_img = combined_img/np.amax(combined_img) # amax returns maximum along an array
+    elif 'int' in element_type:
+        combined_img = np.array(combined_img/np.amax(combined_img)*255, np.uint8)
 
     plt.imshow(combined_img)
     plt.show()
