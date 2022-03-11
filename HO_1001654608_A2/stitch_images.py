@@ -14,8 +14,11 @@
 # conda install scikit-image=0.19.2 -c conda-forge
 
 # do imports
+from asyncio.windows_events import NULL
 from math import sqrt
 from sys import float_info
+
+from pyparsing import null_debug_action
 import numpy as np
 import PIL.Image as Image #enable reading images
 import matplotlib.pyplot as plt
@@ -266,14 +269,37 @@ def ransac(dst_keypoints, src_keypoints, iterations, min_samples, threshold_boun
 
     # plug in the samples to estimate transforms
 
+    # i = 0
+    # best_fit = NULL
+    # best_err = float_info.max
 
-    # step 2: fit a model to the data such that transforming the input by the model parameters yields a close approximation to the targets
+    # while i < iterations:
+    #     # min_samples randomly selected values from data
+    #     maybe_dst_inliers = dst_samples
+    #     maybe_src_inliers = src_samples
 
-    # step 3: measure the error of how well ALL data fits and select the number of inliers with error less than t
+    #     # step 2: fit a model to the data such that transforming the input by the model parameters yields a close approximation to the targets
+    #     #model parameters fitted to maybe_inliers
+    #     # maybe_model = 
+    #     also_inliers = [] # empty set
 
-    # step 4: if the error is lower than the previous best error, fit a new model to these inliers
-
-    return
+    #     # step 3: measure the error of how well ALL data fits and select the number of inliers with error less than t
+    #     for every point in data not in maybe_inliers:
+    #         if point fits maybe_model with an error smaller than threshold_boundary:
+    #             add point to also_inliers
+        
+    #     if number of elements in also_inliers is > d:
+    #         # this implies we may have found a good model
+    #         # now test how good it is
+    #         better_model = model parameters fitted to all points in maybe_inliers and also_inliers
+    #         this_err = a measure of how well better_model fits these points
+            
+    #         # step 4: if the error is lower than the previous best error, fit a new model to these inliers
+    #         if this_err < best_err:
+    #             best_fit = better_model
+    #             best_err = this_err
+            
+    return # best_fit 
 
 # 3.4 Testing
 def main():
@@ -376,10 +402,6 @@ def main():
     ax1.imshow(dst_warped)
 
     plt.show()
-
-    # perspective_mtx = compute_projective_transform(dst_matches, src_matches)
-    # corners_perspective_proj = (perspective_mtx @ corners.T).T # transform corner points
-    # corners_perspective_proj[:, :2] /= corners_perspective_proj[:, 2, None] # divide by the w in perspective projection - None added to ensure 3rd value divides both x and y values
 
 if __name__ == "__main__":
     main()
