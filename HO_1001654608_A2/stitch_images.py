@@ -28,6 +28,7 @@ from skimage import measure
 # keypoint feature descriptors are represented as a (N, n_hist*n_hist*n_ori) array
 # returns a list of indices of matching feature pairs where a pair (i,j) in the list indicates a match between the feature at index i in the src image with the feature at index j in the second image
 def match(dst_features, src_features):
+    print('\nFinding matches...')
     #list of pairs [i,j] of matching keypoints
     matches = []
 
@@ -67,13 +68,14 @@ def match(dst_features, src_features):
 # dst_image, src_image - input images to be combined side by side as np arrays
 # dst_kp_matches, src_kp_matches - keypoints that match with destination image and source image
 def plot_matches(dst_image, src_image, dst_kp_matches, src_kp_matches):
+    print('\nPlotting matches...')
     # combine the two images into one image
     height, width, channels = dst_image.shape
 
     total_width = width*2
 
     combined_img = np.zeros((height, total_width,channels))
-    print(f'Combined Image Shape: {combined_img.shape}')
+    print(f'\nCombined Image Shape: {combined_img.shape}')
     combined_img[:height, :width, :] = dst_image
     combined_img[:height, width:, :] = src_image
 
@@ -89,9 +91,6 @@ def plot_matches(dst_image, src_image, dst_kp_matches, src_kp_matches):
         plt.plot([dst_point[0], src_point[0]+width], [dst_point[1],src_point[1]], 'ro-') # ro- specifies we want to plot red marker with a line connecting the two points
 
     #to get rid of the warning: Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers).
-    
-   
-    
     element_type = str(combined_img[0].dtype) # get a string that says what type each element in the image is (float or int)
     if 'float' in element_type: # is the array elements' type considered a float?
         combined_img = combined_img/np.amax(combined_img) # amax returns maximum along an array
@@ -103,10 +102,70 @@ def plot_matches(dst_image, src_image, dst_kp_matches, src_kp_matches):
 
 
 # 3 Image Stitching
-# 3.1 Estimate Affine MAtrix
+# 3.1 Estimate Affine Matrix
+# takes in set of points from source image and their matching points in the destination image
+# using these samples, the affine transformation matrix is computed using normal equations
+# returns a 3 x 3 matrix
+def compute_affine_transform(dst_points, src_points):
+    # utilize the least squares approach
+    # construct the x matrix that is made up of the matching points from the source image
+    src_sz = len(src_points)*2 # number of rows needed for all the source image points
+    src_matrix = np.zeros((src_sz,6))
+    row = 0 # track row for the matrix
+    for point in src_points:
+        x = point[0] # x coordinate from source image
+        y = point[1] # y coordinate from source image
+        src_matrix[row,0] = x
+        src_matrix[row,1] = y
+        src_matrix[row,2] = 1
+        src_matrix[row+1,3] = x
+        src_matrix[row+1,4] = y
+        src_matrix[row+1,5] = 1
+        row += 2
+
+    # construct the x-hat / b matrix that is made up of the matching points from the destination image
+    dst_sz = len(dst_points)*2 # number of rows needed for all the destination image points - this should be the same as src_sz
+    dst_matrix = np.zeros((dst_sz,1))
+    row = 0 # reset row count to use for the destination image
+    for point in dst_points:
+        x = point[0] # x coordinate from destination image
+        y = point[1] # y coordinate from destination image
+        dst_matrix[row,0] = x
+        dst_matrix[row+1,0] = y
+        row += 2
+
+    # computes the vector x that approximately solves the equation a @ x = b
+    # this is a least-squares solution to the system ax=b where
+    # x = transform_matrix
+    # a = src_matrix
+    # b = dst_matrix
+    # this should return a tuple containing the solution, residuals (the sum), rank (matrix rank of input a), and singular values of input a
+    solution, residuals, rank, singular_vals = np.linalg.lstsq(src_matrix, dst_matrix)
+
+    # construct the affine transformation matrix
+    # the third row 0 0 1 indicates it is an affine transformation
+    affine_transform_mtx = np.array([[solution[0,0], solution[1,0], solution[2,0]]
+                                    ,[solution[3,0], solution[4,0], solution[5,0]]
+                                    ,[0, 0, 1]])
+
+    print("\nAffine transformation matrix found: ")
+    print(affine_transform_mtx)
+
+    return affine_transform_mtx
+
 # 3.2 Estimate Projective Matrix
+# takes in set of points from source image and their matching points in the destination image
+# using these samples, the projective transformation matrix is computed using normal equations
+# returns a 3 x 3 matrix
+def compute_projective_transform(dst_points, src_points):
+    return
+
+
 # 3.3 RANSAC
-# follow basic approach of randomly selecting poitns fitting the  model that are goon  points, taking entire dataset and determining if it was a good point dedpending on number of inliers
+# ransac frequently used for real world sensor data - helps identify outliers
+# trial and error approach that groups inlier and outlier sets
+# randomly draw 2 data points and fit a line through them (treat these as inliers) > check how many of remaining data points aside from sample points that agree with the line (inliers) as a score > repeat process set amount of times > select model with highest score as solution
+# follow basic approach of randomly selecting points fitting the  model that are good  points, taking entire dataset and determining if it was a good point dedpending on number of inliers
 #destination image is the one not being warped
 
 # 3.4 Testing
@@ -171,6 +230,9 @@ def main():
 
     # 2.1 Plot Keypoint Matches
     plot_matches(dst_img_rgb, src_img_rgb, dst_matches, src_matches)
+
+    # 3.1 Estimate Affine Matrix
+    affine_mtx = compute_affine_transform(dst_matches, src_matches)
 
     
 
