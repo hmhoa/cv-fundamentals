@@ -150,7 +150,7 @@ def compute_affine_transform(dst_points, src_points):
     src_inv = np.linalg.pinv(src_matrix.T @ src_matrix)
     solution = src_inv @ src_matrix.T @ dst_matrix
 
-    print(f'\nSolution matrix: {solution}')
+    print(f'\nSolution matrix:\n {solution}')
 
     # construct the affine transformation matrix
     # the third row 0 0 1 indicates it is an affine transformation
@@ -221,7 +221,7 @@ def compute_projective_transform(dst_points, src_points):
     src_inv = np.linalg.pinv(src_matrix.T @ src_matrix)
     solution = src_inv @ src_matrix.T @ dst_matrix
 
-    print(f'\nSolution matrix: {solution}')
+    print(f'\nSolution matrix:\n {solution}')
 
     # construct the affine transformation matrix
     # the third row 0 0 1 indicates it is an affine transformation
@@ -240,11 +240,32 @@ def compute_projective_transform(dst_points, src_points):
 #
 # randomly draw 2 data points and fit a line through them (treat these as inliers) > check how many of remaining data points aside from sample points that agree with the line (inliers) as a score > repeat process set amount of times > select model with highest score as solution
 #
-# follow basic approach of randomly selecting points fitting the  model that are good  points, taking entire dataset and determining if it was a good point dedpending on number of inliers
+# follow basic approach of randomly selecting points fitting the  model that are good  points, taking entire dataset and determining if it was a good point depending on number of inliers
 # destination image is the one not being warped
+# 
+# params:
+# dst_keypoints, src_keypoints - set of keypoints in destination image and their potential matches in the source image; this is the data/set of observations
+# iterations - number of iterations for RANSAC algorithm to run; maximum number of iterations allowed in the algorithm
+# min_samples - minimum number of samples to fit a  model with; minimum number of data points required to estimate model parameters
+# threshold_boundary - a threshold boundary; a threshold value to determine data points that are fit well by model
+# 
+# returns the best fit - model parameters which best fit the data (or null if no good model is found)
 def ransac(dst_keypoints, src_keypoints, iterations, min_samples, threshold_boundary):
     # step 1: randomly sample matched keypoints
+    rows = src_keypoints.shape[0]
+    samples_output_shape = (min_samples)
+    samples_indices = np.random.randint(0,rows, size=samples_output_shape)
+    
+    print(f'\nIndices to pull samples from:\n {samples_indices}')
+    
+    dst_samples = dst_keypoints[samples_indices]
+    src_samples = src_keypoints[samples_indices]
+
+    print(f'\nDestination Image Samples:\n {dst_samples}')
+    print(f'\nSource Image Samples:\n {src_samples}')
+
     # plug in the samples to estimate transforms
+
 
     # step 2: fit a model to the data such that transforming the input by the model parameters yields a close approximation to the targets
 
@@ -317,6 +338,9 @@ def main():
     # 2.1 Plot Keypoint Matches
     plot_matches(dst_img_rgb, src_img_rgb, dst_matches, src_matches)
 
+    #3.3 RANSAC
+    ransac(dst_matches, src_matches, iterations=1, min_samples=10, threshold_boundary=1)
+
     # Compute output shape
     # transform the corners of source image by the inverse of the best fit model
     rows, cols = dst_img.shape
@@ -327,9 +351,8 @@ def main():
                         [cols, rows, 1]
                        ])
     
-    #affine_mtx = compute_affine_transform(dst_matches, src_matches)
-    projective_mtx = compute_projective_transform(dst_matches, src_matches)
-    corners_proj = (projective_mtx @ corners.T).T # transform corner points
+    affine_mtx = compute_affine_transform(dst_matches, src_matches)
+    corners_proj = (affine_mtx @ corners.T).T # transform corner points
     all_corners = np.vstack((corners_proj[:, :2], corners[:, :2])) # stack projected corners with original corners - to determine actual new image boundaries are that are stretched in order to accomodate
     corner_min = np.min(all_corners, axis=0)
     corner_max = np.max(all_corners, axis=0)
@@ -341,7 +364,7 @@ def main():
     offset = SimilarityTransform(translation=-corner_min)
     dst_warped = warp(dst_img_rgb, offset.inverse, output_shape=output_shape) # still need to warp destination image because destination image is with respect to its original image size so translate into leftmost corner
 
-    tf_img = warp(src_img_rgb, (projective_mtx + offset), output_shape=output_shape)
+    tf_img = warp(src_img_rgb, (affine_mtx + offset), output_shape=output_shape)
 
     # combine the images
     foreground_pixels = tf_img[tf_img > 0]
