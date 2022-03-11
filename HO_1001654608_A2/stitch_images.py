@@ -365,7 +365,7 @@ def main():
     plot_matches(dst_img_rgb, src_img_rgb, dst_matches, src_matches)
 
     #3.3 RANSAC
-    ransac(dst_matches, src_matches, iterations=1, min_samples=10, threshold_boundary=1)
+    best_fit_mtx, best_inliers = ransac(dst_matches, src_matches, iterations=1, min_samples=10, threshold_boundary=1)
 
     # Compute output shape
     # transform the corners of source image by the inverse of the best fit model
@@ -377,8 +377,7 @@ def main():
                         [cols, rows, 1]
                        ])
     
-    affine_mtx = compute_affine_transform(dst_matches, src_matches)
-    corners_proj = (affine_mtx @ corners.T).T # transform corner points
+    corners_proj = (best_fit_mtx @ corners.T).T # transform corner points
     all_corners = np.vstack((corners_proj[:, :2], corners[:, :2])) # stack projected corners with original corners - to determine actual new image boundaries are that are stretched in order to accomodate
     corner_min = np.min(all_corners, axis=0)
     corner_max = np.max(all_corners, axis=0)
@@ -390,7 +389,7 @@ def main():
     offset = SimilarityTransform(translation=-corner_min)
     dst_warped = warp(dst_img_rgb, offset.inverse, output_shape=output_shape) # still need to warp destination image because destination image is with respect to its original image size so translate into leftmost corner
 
-    tf_img = warp(src_img_rgb, (affine_mtx + offset), output_shape=output_shape)
+    tf_img = warp(src_img_rgb, (best_fit_mtx + offset), output_shape=output_shape)
 
     # combine the images
     foreground_pixels = tf_img[tf_img > 0]
