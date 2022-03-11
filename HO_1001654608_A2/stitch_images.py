@@ -3,24 +3,28 @@
 # Assignment 2 - SIFT and RANSAC
 # Due March 11, 2022 by 11:59 PM
 
+# references https://github.com/ajdillhoff/CSE4310/blob/main/ransac.ipynb
+#            https://dillhoffaj.utasites.cloud/posts/scale_invariant_feature_transforms/
+#            https://dillhoffaj.utasites.cloud/posts/random_sample_consensus/
+#            https://dillhoffaj.utasites.cloud/posts/image_features/
+#            https://en.wikipedia.org/wiki/Random_sample_consensus
+
 # ensure latest version of scikit-image with SIFT installed
 # conda  search scikit-image -c conda-forge
 # conda install scikit-image=0.19.2 -c conda-forge
 
-#do imports
+# do imports
 from math import sqrt
 from sys import float_info
 import numpy as np
 import PIL.Image as Image #enable reading images
 import matplotlib.pyplot as plt
 import scipy.ndimage as ndi
-from matplotlib.patches import ConnectionPatch
-from skimage.feature import match_descriptors, plot_matches, SIFT
+# from matplotlib.patches import ConnectionPatch
+from skimage.feature import SIFT
 from skimage.color import rgb2gray, rgba2rgb
 from skimage.transform import resize, ProjectiveTransform, SimilarityTransform, warp
 from skimage import measure
-
-
 
 # 2 Keypoint Matching
 # dest_features, src_features - set of keypoint features from dst and src images respectively
@@ -158,15 +162,85 @@ def compute_affine_transform(dst_points, src_points):
 # using these samples, the projective transformation matrix is computed using normal equations
 # returns a 3 x 3 matrix
 def compute_projective_transform(dst_points, src_points):
-    return
+    # utilize the least squares approach
+    # construct the x matrix that is made up of the matching points from the source image
+    src_sz = len(src_points)*2 # number of rows needed for all the source image points
+    src_matrix = np.zeros((src_sz,9))
+    row = 0 # track row for the matrix
+    for point in src_points:
+        x = point[0] # x coordinate from source image
+        y = point[1] # y coordinate from source image
 
+        xd = point[0] # x coordinate from destination image
+        yd = point[1] # y coordinate from destination image
+
+        # 1st row set
+        src_matrix[row,0] = x
+        src_matrix[row,1] = y
+        src_matrix[row,2] = 1
+        src_matrix[row,6] = -x*xd
+        src_matrix[row,7] = -y*xd
+        src_matrix[row,8] = -xd
+        
+        # 2nd row set
+        src_matrix[row+1,3] = x
+        src_matrix[row+1,4] = y
+        src_matrix[row+1,5] = 1
+        src_matrix[row+1,6] = -x*yd
+        src_matrix[row+1,7] = -y*yd
+        src_matrix[row+1,8] = -yd
+        
+        row += 2
+
+    # construct the x-hat / b matrix that is made up of the matching points from the destination image
+    dst_sz = len(dst_points)*2 # number of rows needed for all the destination image points - this should be the same as src_sz
+    dst_matrix = np.zeros((dst_sz,1))
+    row = 0 # reset row count to use for the destination image
+    for point in dst_points:
+        x = point[0] # x coordinate from destination image
+        y = point[1] # y coordinate from destination image
+        dst_matrix[row,0] = x
+        dst_matrix[row+1,0] = y
+        row += 2
+
+    # computes the vector x that approximately solves the equation a @ x = b
+    # this is a least-squares solution to the system ax=b where
+    # x = transform_matrix
+    # a = src_matrix
+    # b = dst_matrix
+    # this should return a tuple containing the solution, residuals (the sum), rank (matrix rank of input a), and singular values of input a
+    solution, residuals, rank, singular_vals = np.linalg.lstsq(src_matrix, dst_matrix)
+
+    # construct the affine transformation matrix
+    # the third row 0 0 1 indicates it is an affine transformation
+    projective_transform_mtx = np.array([[solution[0,0], solution[1,0], solution[2,0]]
+                                    ,[solution[3,0], solution[4,0], solution[5,0]]
+                                    ,[solution[6,0], solution[7,0], solution[8,0]]])
+
+    print("\nProjective transformation matrix found: ")
+    print(projective_transform_mtx)
+
+    return projective_transform_mtx
 
 # 3.3 RANSAC
 # ransac frequently used for real world sensor data - helps identify outliers
 # trial and error approach that groups inlier and outlier sets
+#
 # randomly draw 2 data points and fit a line through them (treat these as inliers) > check how many of remaining data points aside from sample points that agree with the line (inliers) as a score > repeat process set amount of times > select model with highest score as solution
+#
 # follow basic approach of randomly selecting points fitting the  model that are good  points, taking entire dataset and determining if it was a good point dedpending on number of inliers
-#destination image is the one not being warped
+# destination image is the one not being warped
+def ransac(dst_keypoints, src_keypoints, iterations, min_samples, threshold_boundary):
+    # step 1: randomly sample matched keypoints
+    # plug in the samples to estimate transforms
+
+    # step 2: fit a model to the data such that transforming the input by the model parameters yields a close approximation to the targets
+
+    # step 3: measure the error of how well ALL data fits and select the number of inliers with error less than t
+
+    # step 4: if the error is lower than the previous best error, fit a new model to these inliers
+
+    return
 
 # 3.4 Testing
 def main():
@@ -233,8 +307,51 @@ def main():
 
     # 3.1 Estimate Affine Matrix
     affine_mtx = compute_affine_transform(dst_matches, src_matches)
+    projective_mtx = compute_projective_transform(dst_matches, src_matches)
+
+    # Compute output shape
+    # transform the corners of source image by the inverse of the best fit model
+    rows, cols = dst_img.shape
+    corners = np.array([
+                        [0, 0, 1],
+                        [cols, 0, 1],
+                        [0, rows, 1],
+                        [cols, rows, 1]
+                       ])
+    
+    affine_mtx = compute_affine_transform(dst_matches, src_matches)
+    corners_proj = (affine_mtx @ corners.T).T # transform corner points
+    all_corners = np.vstack((corners_proj[:, :2], corners[:, :2])) # stack projected corners with original corners - to determine actual new image boundaries are that are stretched in order to accomodate
+    corner_min = np.min(all_corners, axis=0)
+    corner_max = np.max(all_corners, axis=0)
+    output_shape = all_corners(corner_max - corner_min)
+    output_shape = np.ceil(output_shape[::-1]).astype(int) # ::-1 takes last dimension and swaps x, y (since numpy treats as rows then cols)
+    print('\nOutput shape:')
+    print(output_shape)
+
+    offset = SimilarityTransform(translation=-corner_min)
+    dst_warped = warp(dst_img_rgb, offset.inverse, output_shape=output_shape) # still need to warp destination image because destination image is with respect to its original image size so translate into leftmost corner
+
+    tf_img = warp(src_img_rgb, (affine_mtx + offset).inverse, output_shape=output_shape)
+
+    # combine the images
+    foreground_pixels = tf_img[tf_img > 0]
+    dst_warped[tf_img > 0] = foreground_pixels
+
+    # plot the result
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.imshow(dst_warped)
+
+    plt.show()
+
+    # perspective_mtx = compute_projective_transform(dst_matches, src_matches)
+    # corners_perspective_proj = (perspective_mtx @ corners.T).T # transform corner points
+    # corners_perspective_proj[:, :2] /= corners_perspective_proj[:, 2, None] # divide by the w in perspective projection - None added to ensure 3rd value divides both x and y values
+
 
     
+
 
 if __name__ == "__main__":
     main()
