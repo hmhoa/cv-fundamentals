@@ -296,6 +296,7 @@ def ransac(dst_keypoints, src_keypoints, tf_model, iterations, min_samples, thre
                 
                 # transform the current point to approximate where it would be in the destination image
                 estimate_dpoint = maybe_model @ homogenous_point
+                estimate_dpoint /= estimate_dpoint[2] # rehomogenize the point and divide by w
                 dst_point = dst_keypoints[index]
                 homogenous_dst_point = (np.array([dst_point[0], dst_point[1], 1])).T
 
@@ -335,8 +336,8 @@ def ransac(dst_keypoints, src_keypoints, tf_model, iterations, min_samples, thre
 # 3.4 Testing
 def main():
     # set up images
-    dst_img_rgb = np.asarray(Image.open('a2_images/Rainier1.png'))
-    src_img_rgb = np.asarray(Image.open('a2_images/Rainier2.png'))
+    dst_img_rgb = np.asarray(Image.open('a2_images/campus_000.jpg'))
+    src_img_rgb = np.asarray(Image.open('a2_images/campus_001.jpg'))
 
     # checking if theres a 4th channel - alpha and turning back into rgb
     if dst_img_rgb.shape[2] == 4:
