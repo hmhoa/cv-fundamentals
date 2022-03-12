@@ -153,7 +153,7 @@ def compute_affine_transform(dst_points, src_points):
     src_inv = np.linalg.pinv(src_matrix.T @ src_matrix)
     solution = src_inv @ src_matrix.T @ dst_matrix
 
-    print(f'\nSolution matrix:\n {solution}')
+    # FOR TESTING: print(f'\nSolution matrix:\n {solution}')
 
     # construct the affine transformation matrix
     # the third row 0 0 1 indicates it is an affine transformation
@@ -222,7 +222,7 @@ def compute_projective_transform(dst_points, src_points):
     src_inv = np.linalg.pinv(src_matrix.T @ src_matrix)
     solution = src_inv @ src_matrix.T @ dst_matrix
 
-    print(f'\nSolution matrix:\n {solution}')
+    # FOR TESTING: print(f'\nSolution matrix:\n {solution}')
 
     # construct the affine transformation matrix
     # the third row 0 0 1 indicates it is an affine transformation
@@ -249,7 +249,7 @@ def compute_projective_transform(dst_points, src_points):
 # tf_model - whose parameters is used to transform the input with yields a close approximation to the targets
 # iterations - number of iterations for RANSAC algorithm to run; maximum number of iterations allowed in the algorithm
 # min_samples - minimum number of samples to fit a  model with; minimum number of data points required to estimate model parameters
-# threshold_boundary - a threshold boundary; a threshold value to determine data points that are fit well by model
+# threshold_boundary - a threshold boundary; a threshold value to determine data points that are fit well by model; represents the maximum acceptable distance/pixel distance the approximation can be from the model. Since input points are usually in terms of pixels, a threshold of 1 works
 # d - number of close data points required to assert that a model fits well to data
 # 
 # returns:
@@ -394,7 +394,7 @@ def main():
     plot_matches(dst_img_rgb, src_img_rgb, dst_matches, src_matches)
 
     #3.3 RANSAC
-    best_fit_mtx, best_inliers = ransac(dst_matches, src_matches, compute_affine_transform, iterations=100, min_samples=4, threshold_boundary=8, d=40)
+    best_fit_mtx, best_inliers = ransac(dst_matches, src_matches, compute_affine_transform, iterations=100, min_samples=3, threshold_boundary=1, d=40)
 
     if np.any(best_fit_mtx): # a best fit model was found
         best_dst_inliers = best_inliers[0]
@@ -420,6 +420,10 @@ def main():
                         ])
         
         corners_proj = (best_fit_mtx @ corners.T).T # transform corner points
+        
+        #divide by w
+        corners_proj[:, :2] /= corners_proj[:, 2, None] # None value ensures both x and y values are divided by w
+        
         all_corners = np.vstack((corners_proj[:, :2], corners[:, :2])) # stack projected corners with original corners - to determine actual new image boundaries are that are stretched in order to accomodate
         corner_min = np.min(all_corners, axis=0)
         corner_max = np.max(all_corners, axis=0)
