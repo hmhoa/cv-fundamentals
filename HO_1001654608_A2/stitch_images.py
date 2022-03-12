@@ -30,7 +30,7 @@ from skimage.transform import resize, ProjectiveTransform, SimilarityTransform, 
 from skimage import measure
 
 # 2 Keypoint Matching
-# dest_features, src_features - set of keypoint features from dst and src images respectively
+# dst_features, src_features - set of keypoint features from dst and src images respectively
 # keypoints represented as a (N,2) array. Keypoint coordinates as (row, col)
 # keypoint feature descriptors are represented as a (N, n_hist*n_hist*n_ori) array
 # returns a list of indices of matching feature pairs where a pair (i,j) in the list indicates a match between the feature at index i in the src image with the feature at index j in the second image
@@ -174,7 +174,7 @@ def compute_projective_transform(dst_points, src_points):
     # utilize the least squares approach
     # construct the x matrix that is made up of the matching points from the source image
     src_sz = len(src_points)*2 # number of rows needed for all the source image points
-    src_matrix = np.zeros((src_sz,9))
+    src_matrix = np.zeros((src_sz,8))
     row = 0 # track row for the matrix
     for point in src_points:
         x = point[0] # x coordinate from source image
@@ -189,7 +189,6 @@ def compute_projective_transform(dst_points, src_points):
         src_matrix[row,2] = 1
         src_matrix[row,6] = -x*xd
         src_matrix[row,7] = -y*xd
-        src_matrix[row,8] = -xd
         
         # 2nd row set
         src_matrix[row+1,3] = x
@@ -197,7 +196,6 @@ def compute_projective_transform(dst_points, src_points):
         src_matrix[row+1,5] = 1
         src_matrix[row+1,6] = -x*yd
         src_matrix[row+1,7] = -y*yd
-        src_matrix[row+1,8] = -yd
         
         row += 2
 
@@ -230,7 +228,7 @@ def compute_projective_transform(dst_points, src_points):
     # the third row 0 0 1 indicates it is an affine transformation
     projective_transform_mtx = np.array([[solution[0,0], solution[1,0], solution[2,0]]
                                     ,[solution[3,0], solution[4,0], solution[5,0]]
-                                    ,[solution[6,0], solution[7,0], solution[8,0]]])
+                                    ,[solution[6,0], solution[7,0], 1]])
 
     print("\nProjective transformation matrix found: ")
     print(projective_transform_mtx)
@@ -247,59 +245,92 @@ def compute_projective_transform(dst_points, src_points):
 # destination image is the one not being warped
 # 
 # params:
-# dst_keypoints, src_keypoints - set of keypoints in destination image and their potential matches in the source image; this is the data/set of observations
+# dst_keypoints, src_keypoints - set of keypoints in destination image and their potential matches in the source image; this is the data/set of observations*
+# tf_model - whose parameters is used to transform the input with yields a close approximation to the targets
 # iterations - number of iterations for RANSAC algorithm to run; maximum number of iterations allowed in the algorithm
 # min_samples - minimum number of samples to fit a  model with; minimum number of data points required to estimate model parameters
 # threshold_boundary - a threshold boundary; a threshold value to determine data points that are fit well by model
+# d - number of close data points required to assert that a model fits well to data
 # 
-# returns the best fit - model parameters which best fit the data (or null if no good model is found)
-def ransac(dst_keypoints, src_keypoints, iterations, min_samples, threshold_boundary):
-    # step 1: randomly sample matched keypoints
-    rows = src_keypoints.shape[0]
-    samples_output_shape = (min_samples)
-    samples_indices = np.random.randint(0,rows, size=samples_output_shape)
-    
-    print(f'\nIndices to pull samples from:\n {samples_indices}')
-    
-    dst_samples = dst_keypoints[samples_indices]
-    src_samples = src_keypoints[samples_indices]
+# returns:
+# model parameters which best fit the data (or null if no good model is found)
+# best_fit - the best transform matrix / model
+# best_inliers - the best inlier matches as a tuple of (best dst inlier matches, best src inlier matches)
+def ransac(dst_keypoints, src_keypoints, tf_model, iterations, min_samples, threshold_boundary, d):
+    i = 0
+    best_fit = NULL
+    best_err = float_info.max # something really large
+    best_inliers = (dst_keypoints, src_keypoints)
 
-    print(f'\nDestination Image Samples:\n {dst_samples}')
-    print(f'\nSource Image Samples:\n {src_samples}')
+    while i < iterations:
+        # step 1: randomly sample matched keypoints
+        rows = src_keypoints.shape[0]
+        samples_output_shape = (min_samples)
+        samples_indices = np.random.randint(0,rows, size=samples_output_shape)
 
-    # plug in the samples to estimate transforms
+        dst_samples = dst_keypoints[samples_indices]
+        src_samples = src_keypoints[samples_indices]
 
-    # i = 0
-    # best_fit = NULL
-    # best_err = float_info.max
-
-    # while i < iterations:
-    #     # min_samples randomly selected values from data
-    #     maybe_dst_inliers = dst_samples
-    #     maybe_src_inliers = src_samples
-
-    #     # step 2: fit a model to the data such that transforming the input by the model parameters yields a close approximation to the targets
-    #     #model parameters fitted to maybe_inliers
-    #     # maybe_model = 
-    #     also_inliers = [] # empty set
-
-    #     # step 3: measure the error of how well ALL data fits and select the number of inliers with error less than t
-    #     for every point in data not in maybe_inliers:
-    #         if point fits maybe_model with an error smaller than threshold_boundary:
-    #             add point to also_inliers
+        print(f'\nIndices to pull samples from:\n {samples_indices}')
+        # FOR TESTING: print(f'\nDestination Image Samples:\n {dst_samples}')
+        # FOR TESTING: print(f'\nSource Image Samples:\n {src_samples}')   
         
-    #     if number of elements in also_inliers is > d:
-    #         # this implies we may have found a good model
-    #         # now test how good it is
-    #         better_model = model parameters fitted to all points in maybe_inliers and also_inliers
-    #         this_err = a measure of how well better_model fits these points
+        # min_samples randomly selected values from data
+        maybe_dst_inliers = dst_samples
+        maybe_src_inliers = src_samples
+        also_dst_inliers = []
+        also_src_inliers = [] # empty set currently, but will be any other inliers found other than the initial sample set
+        this_err = 0
+
+        # step 2: fit a model to the data such that transforming the input by the model parameters yields a close approximation to the targets
+        # model parameters fitted to maybe_inliers
+        maybe_model = tf_model(dst_samples, src_samples)
+
+        # step 3: measure the error of how well ALL data fits and select the number of inliers with error less than t
+        index = 0
+        for point in src_keypoints:
+            if point not in maybe_src_inliers:
+                # represent as a homogenous point and transpose to turn into a vector form
+                homogenous_point = (np.array([point[0], point[1], 1])).T
+                #FOR TESTING: print(f'\nPoint vs Homogenous Source Point:\n {point} vs {homogenous_point}')
+                
+                # transform the current point to approximate where it would be in the destination image
+                estimate_dpoint = maybe_model @ homogenous_point
+                dst_point = dst_keypoints[index]
+                homogenous_dst_point = (np.array([dst_point[0], dst_point[1], 1])).T
+
+                # compute the error between this approximation and the actual matching point
+                difference = homogenous_dst_point - estimate_dpoint
+                error = np.linalg.norm(difference)
+                this_err += error # a measure of how well better_model fits these points
+
+                if error < threshold_boundary:
+                    also_src_inliers.append(point)
+                    also_dst_inliers.append(dst_point)
+        
+            if len(also_src_inliers) > d:
+                # this implies we may have found a good model
+                # now test how good it is
+                all_dst_inliers = np.append(maybe_dst_inliers, values=also_dst_inliers, axis=0)
+                all_src_inliers = np.append(maybe_src_inliers, values=also_src_inliers, axis=0)
+
+                # FOR TESTING: print(f'\nAll destination inliers found for iteration {i} with shape {all_dst_inliers.shape}:\n {all_dst_inliers}')
+                # FOR TESTING: print(f'\nAll source inliers found for iteration {i} with shape {all_src_inliers.shape}:\n {all_src_inliers}')
+
+
+                better_model = tf_model(all_dst_inliers, all_src_inliers) # model parameters fitted to all points in maybe_inliers and also_inliers
+                
+                # step 4: if the error is lower than the previous best error, fit a new model to these inliers
+                if this_err < best_err:
+                    best_fit = better_model
+                    best_err = this_err
+                    best_inliers = (all_dst_inliers, all_src_inliers)
+
+            index += 1
+        
+        i += 1
             
-    #         # step 4: if the error is lower than the previous best error, fit a new model to these inliers
-    #         if this_err < best_err:
-    #             best_fit = better_model
-    #             best_err = this_err
-            
-    return # best_fit 
+    return best_fit, best_inliers
 
 # 3.4 Testing
 def main():
@@ -317,7 +348,6 @@ def main():
     # grayscale the images
     dst_img = rgb2gray(dst_img_rgb)
     src_img = rgb2gray(src_img_rgb)
-
 
     # plotting the set up images (nothing changed so far)
     # fig, ax = plt.figure(figsize=(8, 4))
@@ -365,7 +395,19 @@ def main():
     plot_matches(dst_img_rgb, src_img_rgb, dst_matches, src_matches)
 
     #3.3 RANSAC
-    best_fit_mtx, best_inliers = ransac(dst_matches, src_matches, iterations=1, min_samples=10, threshold_boundary=1)
+    best_fit_mtx, best_inliers = ransac(dst_matches, src_matches, compute_affine_transform, iterations=5, min_samples=3, threshold_boundary=8, d=10)
+
+    best_dst_inliers = best_inliers[0]
+    best_src_inliers = best_inliers[1]
+
+    dst_best = dst_keypoints[matches[best_dst_inliers, 0]][:, ::-1]
+    src_best = src_keypoints[matches[best_src_inliers, 1]][:, ::-1]
+
+    print(f'\nBest fit matrix found:\n {best_fit_mtx}')
+    print(f'\nBest destination inliers:\n {dst_best}')
+    print(f'\nBest source inliers:\n {src_best}')
+
+    plot_matches(dst_img_rgb, src_img_rgb, dst_best, src_best)
 
     # Compute output shape
     # transform the corners of source image by the inverse of the best fit model
