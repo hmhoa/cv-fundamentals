@@ -394,54 +394,57 @@ def main():
     plot_matches(dst_img_rgb, src_img_rgb, dst_matches, src_matches)
 
     #3.3 RANSAC
-    best_fit_mtx, best_inliers = ransac(dst_matches, src_matches, compute_affine_transform, iterations=5, min_samples=3, threshold_boundary=8, d=10)
+    best_fit_mtx, best_inliers = ransac(dst_matches, src_matches, compute_affine_transform, iterations=100, min_samples=4, threshold_boundary=8, d=40)
 
-    best_dst_inliers = best_inliers[0]
-    best_src_inliers = best_inliers[1]
+    if np.any(best_fit_mtx): # a best fit model was found
+        best_dst_inliers = best_inliers[0]
+        best_src_inliers = best_inliers[1]
 
-    dst_best = dst_keypoints[matches[best_dst_inliers, 0]][:, ::-1]
-    src_best = src_keypoints[matches[best_src_inliers, 1]][:, ::-1]
+        dst_best = dst_keypoints[matches[best_dst_inliers, 0]][:, ::-1]
+        src_best = src_keypoints[matches[best_src_inliers, 1]][:, ::-1]
 
-    print(f'\nBest fit matrix found:\n {best_fit_mtx}')
-    print(f'\nBest destination inliers:\n {dst_best}')
-    print(f'\nBest source inliers:\n {src_best}')
+        print(f'\nBest fit matrix found:\n {best_fit_mtx}')
+        print(f'\nBest destination inliers:\n {dst_best}')
+        print(f'\nBest source inliers:\n {src_best}')
 
-    plot_matches(dst_img_rgb, src_img_rgb, dst_best, src_best)
+        plot_matches(dst_img_rgb, src_img_rgb, dst_best, src_best)
 
-    # Compute output shape
-    # transform the corners of source image by the inverse of the best fit model
-    rows, cols = dst_img.shape
-    corners = np.array([
-                        [0, 0, 1],
-                        [cols, 0, 1],
-                        [0, rows, 1],
-                        [cols, rows, 1]
-                       ])
-    
-    corners_proj = (best_fit_mtx @ corners.T).T # transform corner points
-    all_corners = np.vstack((corners_proj[:, :2], corners[:, :2])) # stack projected corners with original corners - to determine actual new image boundaries are that are stretched in order to accomodate
-    corner_min = np.min(all_corners, axis=0)
-    corner_max = np.max(all_corners, axis=0)
-    output_shape = (corner_max - corner_min)
-    output_shape = np.ceil(output_shape[::-1]).astype(int) # ::-1 takes last dimension and swaps x, y (since numpy treats as rows then cols)
-    print('\nOutput shape:')
-    print(output_shape)
+        # Compute output shape
+        # transform the corners of source image by the inverse of the best fit model
+        rows, cols = dst_img.shape
+        corners = np.array([
+                            [0, 0, 1],
+                            [cols, 0, 1],
+                            [0, rows, 1],
+                            [cols, rows, 1]
+                        ])
+        
+        corners_proj = (best_fit_mtx @ corners.T).T # transform corner points
+        all_corners = np.vstack((corners_proj[:, :2], corners[:, :2])) # stack projected corners with original corners - to determine actual new image boundaries are that are stretched in order to accomodate
+        corner_min = np.min(all_corners, axis=0)
+        corner_max = np.max(all_corners, axis=0)
+        output_shape = (corner_max - corner_min)
+        output_shape = np.ceil(output_shape[::-1]).astype(int) # ::-1 takes last dimension and swaps x, y (since numpy treats as rows then cols)
+        print('\nOutput shape:')
+        print(output_shape)
 
-    offset = SimilarityTransform(translation=-corner_min)
-    dst_warped = warp(dst_img_rgb, offset.inverse, output_shape=output_shape) # still need to warp destination image because destination image is with respect to its original image size so translate into leftmost corner
+        offset = SimilarityTransform(translation=-corner_min)
+        dst_warped = warp(dst_img_rgb, offset.inverse, output_shape=output_shape) # still need to warp destination image because destination image is with respect to its original image size so translate into leftmost corner
 
-    tf_img = warp(src_img_rgb, (best_fit_mtx + offset), output_shape=output_shape)
+        tf_img = warp(src_img_rgb, (best_fit_mtx + offset), output_shape=output_shape)
 
-    # combine the images
-    foreground_pixels = tf_img[tf_img > 0]
-    dst_warped[tf_img > 0] = foreground_pixels
+        # combine the images
+        foreground_pixels = tf_img[tf_img > 0]
+        dst_warped[tf_img > 0] = foreground_pixels
 
-    # plot the result
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    ax1.imshow(dst_warped)
+        # plot the result
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111)
+        ax1.imshow(dst_warped)
 
-    plt.show()
+        plt.show()
+    else:
+        print(f'\nA best fit was not found')
 
 if __name__ == "__main__":
     main()
