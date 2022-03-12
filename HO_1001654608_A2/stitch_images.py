@@ -335,7 +335,6 @@ def ransac(dst_keypoints, src_keypoints, tf_model, iterations, min_samples, thre
 # 3.4 Testing
 def main():
     # set up images
-    
     dst_img_rgb = np.asarray(Image.open('a2_images/Rainier1.png'))
     src_img_rgb = np.asarray(Image.open('a2_images/Rainier2.png'))
 
