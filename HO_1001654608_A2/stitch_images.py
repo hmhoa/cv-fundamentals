@@ -336,8 +336,8 @@ def ransac(dst_keypoints, src_keypoints, tf_model, iterations, min_samples, thre
 # 3.4 Testing
 def main():
     # set up images
-    dst_img_rgb = np.asarray(Image.open('a2_images/campus_000.jpg'))
-    src_img_rgb = np.asarray(Image.open('a2_images/campus_001.jpg'))
+    dst_img_rgb = np.asarray(Image.open('a2_images/Rainier1.png'))
+    src_img_rgb = np.asarray(Image.open('a2_images/Rainier2.png'))
 
     # checking if theres a 4th channel - alpha and turning back into rgb
     if dst_img_rgb.shape[2] == 4:
