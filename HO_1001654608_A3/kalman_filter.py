@@ -1,7 +1,7 @@
 # Hoang Ho - 1001654608
 # CSE 4310-001 Fundamentals of Computer Vision
 # Assignment 3 - Detecting Motion and Kalman Filters
-# Due March 30, 2022 by 11:59 PM
+# Due April 1, 2022 by 11:59 PM
 
 import sys
 import numpy as np
