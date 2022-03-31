@@ -3,8 +3,16 @@
 # Assignment 3 - Detecting Motion and Kalman Filters
 # Due March 30, 2022 by 11:59 PM
 
-import numpy as np
 import sys
+
+import numpy as np
+import matplotlib.pyplot as plt
+import skvideo.io
+from skimage.color import rgb2gray
+from skimage.measure import label, regionprops
+from skimage.morphology import  dilation
+
+
 from kalman_filter import *
 
 class MotionDetector:
