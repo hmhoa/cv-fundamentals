@@ -48,11 +48,11 @@ class MotionDetector:
         # append each kalman filter as part of the initialization
         for obj in initial_objs:
             pos = obj.centroid
-            state = np.array([pos[0], pos[1], 1, 1]) # state representation for kalman filter
+            state = np.array([[pos[0], pos[1], 1, 1]]) # state representation for kalman filter
             self.motion_objs.append([obj, KalmanFilter(state.T),3])
             
             # if maximum objects detected, break
-            if (obj.label-1) == self.max_objs:
+            if obj.label == self.max_objs:
                 break
 
     # detect all the different objects in motion
@@ -84,19 +84,20 @@ class MotionDetector:
             # if not add it to the list of objects to track if there are not already max objs in the list
             for candidate in regions:
                 cpos = candidate.centroid # centroid coordinate tuple of current candidate
-                measurement = (np.array([cpos[0], cpos[1], 1, 1])).T # measurement for kalman filter
+                measurement = (np.array([[cpos[0], cpos[1], 1, 1]])).T # measurement for kalman filter
 
                 # check if candidate belongs to an object currently being tracked based on distance threshold
                 # If the distance between an object proposal and the prediction of one of the filters is
                 # less than δ (dist_t), assume that proposal is a measurement for the corresponding filter and update # predictions for the filter.
-                predictions = [ x[1].predict() for x in self.motion_objs ]
                 dist_diff = []
-                for prediction in predictions:
+                for prediction in self.motion_objs:
+                    prediction[1].predict()
                     model = prediction[1].state_model
                     distance = sqrt(np.sum(np.square(model-measurement)))
                     dist_diff.append(distance)
-                matches = dist_diff[dist_diff < self.dist_t]
-
+                matches = [ match for match in dist_diff if match < self.dist_t ]
+                print(matches)
+            
                 # update the prediction
                 if len(matches) != 0:
                     # get index of matched filter
@@ -111,7 +112,7 @@ class MotionDetector:
             
         self.last_frame_index = new_frame_index
         # remove inactive objects using frame_hyst
-        for i in range(len(self.motion_objs)):
-            last_updated = self.motion_objs[i][2]
+        for j in range(len(self.motion_objs)):
+            last_updated = self.motion_objs[j][2]
             if new_frame_index-last_updated >= self.frame_hyst:
-                self.motion_objs.pop(i)
+                self.motion_objs.pop(j)

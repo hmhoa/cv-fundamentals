@@ -27,7 +27,7 @@ class QtDemo(QtWidgets.QWidget):
         self.frames = frames
         
         # create motion detector object
-        self.motion_detector = MotionDetector(frames, 5, 0.05, 0.05, 3, 3)
+        self.motion_detector = MotionDetector(frames, 5, 0.05, 0.05, 3, 5)
 
         self.current_frame = 0
 

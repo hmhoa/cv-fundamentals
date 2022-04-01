@@ -17,7 +17,7 @@ import numpy as np
 # prediction step - takes motion commands into account to estimate in order to predict where system will be at next point in time
 # correction step - takes into account sensor observation in order to correct potential mistakes and takes observation in account and compute predicted observation (what should i be) and compare 2 observations
 #
-# Xi - current state? predicted observation - state of the object where does it think position wise, etc
+# Xi - current state which is current predicted observation - state of the object where does it think position wise, etc
 # Yi - current observation - measurement at step i
 #
 #
@@ -32,7 +32,7 @@ class KalmanFilter:
     def __init__(self, state_model):
         # initial model
         self.state_model = state_model # predicted observation Xi
-        self.cov_mtx = self.state_model @ (self.state_model.T) # corresponding covariance matrix
+        self.cov_mtx = self.state_model @ (self.state_model).T # corresponding covariance matrix
         self.history = [self.state_model] # history of tracked object
     
     # Prediction Task
@@ -53,6 +53,12 @@ class KalmanFilter:
                     , [0, 0, 1, 0]
                     , [0, 0, 0, 1]])
 
+        #FOR TESTING
+        # print(D)
+        # print(self.cov_mtx)
+        # print(self.state_model)
+        # print((self.state_model).T)
+
         # get the sample we observed at the previous step
         prev_step = len(self.history)-1
         prev_sample = self.history[prev_step]
@@ -61,13 +67,16 @@ class KalmanFilter:
 
         #get uncertainty due to factors outside the system
         uncertainty = np.random.normal(0,np.array([[0.1, 0.1, 0.1, 0.1]
+                                                ,  [0.1, 0.1, 0.1, 0.1]
+                                                ,  [0.1, 0.1, 0.1, 0.1]
                                                 ,  [0.1, 0.1, 0.1, 0.1]]))
-        cov_prediction = D @ self.cov_mtx @ D.T + uncertainty # predict covariance mtx
+        cov_prediction = (D @ self.cov_mtx @ D.T) + uncertainty # predict covariance mtx
 
         self.state_model = prediction
         self.cov_mtx = cov_prediction
 
 
+    # Correction task
     # give observation at what we're seeing at current time step and update predictions
     # covariance of measurement usually calculated by whoevers manufacturing the sensors
     # 
@@ -78,6 +87,8 @@ class KalmanFilter:
     # Assumed predict() has already been called prior to taking into account new measurement
     def update(self, new_measurement):
         K_gain = self.cov_mtx @ np.linalg.pinv(self.cov_mtx + np.array([0.1, 0.1, 0.1, 0.1]
+                                                                     , [0.1, 0.1, 0.1, 0.1]
+                                                                     , [0.1, 0.1, 0.1, 0.1]
                                                                      , [0.1, 0.1, 0.1, 0.1]))
 
         # prediction after new measurement has been given
