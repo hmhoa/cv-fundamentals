@@ -69,8 +69,28 @@ class QtDemo(QtWidgets.QWidget):
         self.back60_button.clicked.connect(self.on_back60_click)
         self.frame_slider.sliderMoved.connect(self.on_move)
 
+    # draw rectangle to overlay over detected objects
+    def draw_bbox(self, img):
+        pixmap_image = QtGui.QPixmap(img)
+
+        painter = QtGui.QPainter(pixmap_image)
+        rect_pen = QtGui.QPen(QtCore.Qt.red) # setting pen color to draw rectangle
+        rect_pen.setWidth(2) # setting rectangle thickness
+
+        painter.setPen(rect_pen)
+        
+        # go through each tracked object and get its bounding box and draw it
+        for motion_obj in self.motion_detector.motion_objs:
+            minr, minc, maxr, maxc = motion_obj[0].bbox
+            painter.drawRect(minc, minr, maxc-minc, maxr-minr)
+
+        return pixmap_image
+
     @QtCore.Slot()
     def on_next1_click(self):
+        # update objects
+        self.motion_detector.update_tracking(self.current_frame)
+        
         if self.current_frame == self.frames.shape[0]-1:
             return
         h, w, c = self.frames[self.current_frame].shape
@@ -78,7 +98,11 @@ class QtDemo(QtWidgets.QWidget):
             img = QtGui.QImage(self.frames[self.current_frame], w, h, QtGui.QImage.Format_Grayscale8)
         else:
             img = QtGui.QImage(self.frames[self.current_frame], w, h, QtGui.QImage.Format_RGB888)
-        self.img_label.setPixmap(QtGui.QPixmap.fromImage(img))
+
+        # draw rectangle
+        drawn_img = self.draw_bbox(img)
+        self.img_label.setPixmap(drawn_img) # QtGui.QPixmap.fromImage(img)
+
         self.current_frame += 1 # frame jump by 1 frame
 
     @QtCore.Slot()
@@ -98,6 +122,9 @@ class QtDemo(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def on_next60_click(self):
+        # update objects
+        self.motion_detector.update_tracking(self.current_frame)
+
         if self.current_frame == self.frames.shape[0]-1:
             return
         h, w, c = self.frames[self.current_frame].shape
@@ -105,7 +132,12 @@ class QtDemo(QtWidgets.QWidget):
             img = QtGui.QImage(self.frames[self.current_frame], w, h, QtGui.QImage.Format_Grayscale8)
         else:
             img = QtGui.QImage(self.frames[self.current_frame], w, h, QtGui.QImage.Format_RGB888)
-        self.img_label.setPixmap(QtGui.QPixmap.fromImage(img))
+        
+        # draw rectangle
+        drawn_img = self.draw_bbox(img)
+        self.img_label.setPixmap(drawn_img) # QtGui.QPixmap.fromImage(img)
+        
+        # self.img_label.setPixmap(QtGui.QPixmap.fromImage(img))
         self.current_frame += 60 # frame jump by 60 frames
 
     @QtCore.Slot()

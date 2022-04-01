@@ -21,7 +21,7 @@ import numpy as np
 # Yi - current observation - measurement at step i
 #
 #
-# super -: i-1(?) before we see new observation (every single observation before new observation)
+# super -: before we see new observation (every single observation before new observation)
 # super +: current observation/after observation
 # approximate xi with normal distrib
 # control matrix/control vector - things we know about, not uncertainty so dont update state model based on that
@@ -60,8 +60,8 @@ class KalmanFilter:
         prediction = D @ prev_sample # prediction for step k
 
         #get uncertainty due to factors outside the system
-        uncertainty = np.random.normal(0,np.array([0.1, 0.1, 0.1, 0.1]
-                                                , [0.1, 0.1, 0.1, 0.1]))
+        uncertainty = np.random.normal(0,np.array([[0.1, 0.1, 0.1, 0.1]
+                                                ,  [0.1, 0.1, 0.1, 0.1]]))
         cov_prediction = D @ self.cov_mtx @ D.T + uncertainty # predict covariance mtx
 
         self.state_model = prediction
@@ -74,6 +74,8 @@ class KalmanFilter:
     # making corrections:
     # reconcile the uncertainty of predicted state with the uncertainty of new measurement = we wanted to know 
     # the distribution over the union of the two distributions (achieved by multiplying the gaussians together)
+    #
+    # Assumed predict() has already been called prior to taking into account new measurement
     def update(self, new_measurement):
         K_gain = self.cov_mtx @ np.linalg.pinv(self.cov_mtx + np.array([0.1, 0.1, 0.1, 0.1]
                                                                      , [0.1, 0.1, 0.1, 0.1]))
