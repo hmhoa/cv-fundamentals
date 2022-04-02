@@ -77,7 +77,8 @@ class MotionDetector:
     def update_tracking(self, new_frame_index):
         # check if current frame is past the number of skipped frames since last detection
         # detect only if it has been [skips] frames since last detection
-        for i in range(self.last_frame_index, new_frame_index):
+        i = self.last_frame_index
+        while(i < new_frame_index):
             regions = self.detect(i)
             
             # check if each centroid coordinate for each region/blob object found belongs to an object currently being tracked using the distance threshold
@@ -91,12 +92,11 @@ class MotionDetector:
                 # less than δ (dist_t), assume that proposal is a measurement for the corresponding filter and update # predictions for the filter.
                 dist_diff = []
                 for prediction in self.motion_objs:
-                    prediction[1].predict()
+                    prediction[1].predict(self.skips)
                     model = prediction[1].state_model
                     distance = sqrt(np.sum(np.square(model-measurement)))
                     dist_diff.append(distance)
                 matches = [ match for match in dist_diff if match < self.dist_t ]
-                print(matches)
             
                 # update the prediction
                 if len(matches) != 0:
@@ -112,7 +112,9 @@ class MotionDetector:
             
         self.last_frame_index = new_frame_index
         # remove inactive objects using frame_hyst
-        for j in range(len(self.motion_objs)):
+        j = 0
+        while(j < len(self.motion_objs)):
             last_updated = self.motion_objs[j][2]
             if new_frame_index-last_updated >= self.frame_hyst:
                 self.motion_objs.pop(j)
+            j += 1

@@ -44,9 +44,7 @@ class KalmanFilter:
     # x(k-1)^+ = the sample after we observed at step k-1
     # Assume the velocity is constant
     # t: delta t is a hyperparameter chosen by user
-    def predict(self):
-        t = 1
-        
+    def predict(self, t):
         # create the D matrix
         D = np.array([[1, 0, t, 0]
                     , [0, 1, 0, t]
@@ -86,10 +84,10 @@ class KalmanFilter:
     #
     # Assumed predict() has already been called prior to taking into account new measurement
     def update(self, new_measurement):
-        K_gain = self.cov_mtx @ np.linalg.pinv(self.cov_mtx + np.array([0.1, 0.1, 0.1, 0.1]
-                                                                     , [0.1, 0.1, 0.1, 0.1]
-                                                                     , [0.1, 0.1, 0.1, 0.1]
-                                                                     , [0.1, 0.1, 0.1, 0.1]))
+        K_gain = self.cov_mtx @ np.linalg.pinv(self.cov_mtx + np.array([[0.1, 0.1, 0.1, 0.1]
+                                                                     ,  [0.1, 0.1, 0.1, 0.1]
+                                                                     ,  [0.1, 0.1, 0.1, 0.1]
+                                                                     ,  [0.1, 0.1, 0.1, 0.1]]))
 
         # prediction after new measurement has been given
         new_prediction = self.state_model + K_gain @ (new_measurement - self.state_model)

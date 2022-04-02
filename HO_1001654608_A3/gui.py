@@ -27,7 +27,7 @@ class QtDemo(QtWidgets.QWidget):
         self.frames = frames
         
         # create motion detector object
-        self.motion_detector = MotionDetector(frames, 5, 0.05, 0.05, 3, 5)
+        self.motion_detector = MotionDetector(frames, 5, 0.05, 1, 3, 5)
 
         self.current_frame = 0
 
@@ -69,20 +69,53 @@ class QtDemo(QtWidgets.QWidget):
         self.back60_button.clicked.connect(self.on_back60_click)
         self.frame_slider.sliderMoved.connect(self.on_move)
 
-    # draw rectangle to overlay over detected objects
-    def draw_bbox(self, img):
+    # draw rectangle to overlay over detected objects and also line based on history of tracked objects
+    def draw_bbox_line(self, img):
         pixmap_image = QtGui.QPixmap(img)
 
         painter = QtGui.QPainter(pixmap_image)
         rect_pen = QtGui.QPen(QtCore.Qt.red) # setting pen color to draw rectangle
-        rect_pen.setWidth(2) # setting rectangle thickness
-
+        rect_pen.setWidth(1) # setting rectangle thickness
         painter.setPen(rect_pen)
         
         # go through each tracked object and get its bounding box and draw it
         for motion_obj in self.motion_detector.motion_objs:
+            rect_pen.setColor(QtCore.Qt.red)
             minr, minc, maxr, maxc = motion_obj[0].bbox
             painter.drawRect(minc, minr, maxc-minc, maxr-minr)
+            
+            # FOR TESTING
+            # print(len(filter_history))
+            # print(filter_history)
+
+            #draw line for the history of the tracked object
+            rect_pen.setColor(QtCore.Qt.blue)
+            filter_history = motion_obj[1].history
+            i = 1
+            while(i < len(filter_history)):
+                pt1 = filter_history[i-1]
+                x1 = pt1[0]
+                y1 = pt1[1]
+                print(x1)
+                print(y1)
+
+                pt2 = filter_history[i]
+                x2 = pt2[0]
+                y2 = pt2[1]
+
+                qt_pt1 = QtCore.QPointF(x1, y1)
+                qt_pt2 = QtCore.QPointF(x2, y2)
+
+                line = QtCore.QLineF(qt_pt1, qt_pt2)
+                painter.drawPoint(qt_pt1)
+                painter.drawLine(line)
+
+                i += 1
+            
+            
+
+
+
 
         return pixmap_image
 
@@ -100,7 +133,7 @@ class QtDemo(QtWidgets.QWidget):
             img = QtGui.QImage(self.frames[self.current_frame], w, h, QtGui.QImage.Format_RGB888)
 
         # draw rectangle
-        drawn_img = self.draw_bbox(img)
+        drawn_img = self.draw_bbox_line(img)
         self.img_label.setPixmap(drawn_img) # QtGui.QPixmap.fromImage(img)
 
         self.current_frame += 1 # frame jump by 1 frame
@@ -134,7 +167,7 @@ class QtDemo(QtWidgets.QWidget):
             img = QtGui.QImage(self.frames[self.current_frame], w, h, QtGui.QImage.Format_RGB888)
         
         # draw rectangle
-        drawn_img = self.draw_bbox(img)
+        drawn_img = self.draw_bbox_line(img)
         self.img_label.setPixmap(drawn_img) # QtGui.QPixmap.fromImage(img)
         
         # self.img_label.setPixmap(QtGui.QPixmap.fromImage(img))
