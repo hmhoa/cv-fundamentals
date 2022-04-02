@@ -1,9 +1,9 @@
 # Hoang Ho - 1001654608
 # CSE 4310-001 Fundamentals of Computer Vision
 # Assignment 3 - Detecting Motion and Kalman Filters
-# Due April 1, 2022 by 11:59 PM
+# Due April 6, 2022 by 11:59 PM
 
-# used following as starting point: https://github.com/ajdillhoff/CSE4310/blob/main/qtdemo.py
+# used following class demo as GUI starting point: https://github.com/ajdillhoff/CSE4310/blob/main/qtdemo.py
 # references: https://github.com/ajdillhoff/CSE4310/blob/main/frame_diff.ipynb
 
 import sys
@@ -20,6 +20,14 @@ from skimage.morphology import  dilation
 
 from motion_detector import *
 
+# set the hyperparameters
+FRAME_HYSTERESIS = 120
+MOTION_THRESHOLD = 0.05
+DISTANCE_THRESHOLD = 0.20
+NUMBER_SKIPS = 3
+MAXIMUM_OBJECTS = 10
+
+
 class QtDemo(QtWidgets.QWidget):
     def __init__(self, frames):
         super().__init__()
@@ -27,7 +35,7 @@ class QtDemo(QtWidgets.QWidget):
         self.frames = frames
         
         # create motion detector object
-        self.motion_detector = MotionDetector(frames, 5, 0.05, 1, 3, 5)
+        self.motion_detector = MotionDetector(self.frames, FRAME_HYSTERESIS, MOTION_THRESHOLD, DISTANCE_THRESHOLD, NUMBER_SKIPS, MAXIMUM_OBJECTS)
 
         self.current_frame = 0
 
@@ -75,7 +83,7 @@ class QtDemo(QtWidgets.QWidget):
 
         painter = QtGui.QPainter(pixmap_image)
         rect_pen = QtGui.QPen(QtCore.Qt.red) # setting pen color to draw rectangle
-        rect_pen.setWidth(1) # setting rectangle thickness
+        rect_pen.setWidth(2) # setting rectangle thickness
         painter.setPen(rect_pen)
         
         # go through each tracked object and get its bounding box and draw it
@@ -84,20 +92,19 @@ class QtDemo(QtWidgets.QWidget):
             minr, minc, maxr, maxc = motion_obj[0].bbox
             painter.drawRect(minc, minr, maxc-minc, maxr-minr)
             
-            # FOR TESTING
-            # print(len(filter_history))
-            # print(filter_history)
-
-            #draw line for the history of the tracked object
+            # draw line for the history of the tracked object
             rect_pen.setColor(QtCore.Qt.blue)
             filter_history = motion_obj[1].history
             i = 1
+
+            # FOR TESTING
+            # print(len(filter_history))
+            # print(filter_history)
+            
             while(i < len(filter_history)):
                 pt1 = filter_history[i-1]
                 x1 = pt1[0]
                 y1 = pt1[1]
-                print(x1)
-                print(y1)
 
                 pt2 = filter_history[i]
                 x2 = pt2[0]
@@ -111,14 +118,10 @@ class QtDemo(QtWidgets.QWidget):
                 painter.drawLine(line)
 
                 i += 1
-            
-            
-
-
-
-
+        
         return pixmap_image
 
+    # methods that execute based on button clicked
     @QtCore.Slot()
     def on_next1_click(self):
         # update objects
@@ -134,12 +137,18 @@ class QtDemo(QtWidgets.QWidget):
 
         # draw rectangle
         drawn_img = self.draw_bbox_line(img)
-        self.img_label.setPixmap(drawn_img) # QtGui.QPixmap.fromImage(img)
+        self.img_label.setPixmap(drawn_img)
 
         self.current_frame += 1 # frame jump by 1 frame
 
     @QtCore.Slot()
     def on_back1_click(self):
+        self.current_frame -= 1 # frame jump back by 1 frame
+        
+        # re-initialize
+        self.motion_detector = MotionDetector(self.frames, FRAME_HYSTERESIS, MOTION_THRESHOLD, DISTANCE_THRESHOLD, NUMBER_SKIPS, MAXIMUM_OBJECTS)
+        self.motion_detector.update_tracking(self.current_frame)
+        
         if self.current_frame == self.frames.shape[0]-1:
             return
         h, w, c = self.frames[self.current_frame].shape
@@ -148,11 +157,10 @@ class QtDemo(QtWidgets.QWidget):
         else:
             img = QtGui.QImage(self.frames[self.current_frame], w, h, QtGui.QImage.Format_RGB888)
         self.img_label.setPixmap(QtGui.QPixmap.fromImage(img))
-        self.current_frame -= 1 # frame jump back by 1 frame
 
-        # re-initialize
-        self.motion_detector = MotionDetector(self.current_frame, 5, 0.05, 0.05, 3, 3)
-
+        drawn_img = self.draw_bbox_line(img)
+        self.img_label.setPixmap(drawn_img)
+    
     @QtCore.Slot()
     def on_next60_click(self):
         # update objects
@@ -175,6 +183,12 @@ class QtDemo(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def on_back60_click(self):
+        self.current_frame -= 60 # frame jump back by 60 frames
+        
+        # re-initialize
+        self.motion_detector = MotionDetector(self.frames, FRAME_HYSTERESIS, MOTION_THRESHOLD, DISTANCE_THRESHOLD, NUMBER_SKIPS, MAXIMUM_OBJECTS)
+        self.motion_detector.update_tracking(self.current_frame)
+        
         if self.current_frame == self.frames.shape[0]-1:
             return
         h, w, c = self.frames[self.current_frame].shape
@@ -183,15 +197,18 @@ class QtDemo(QtWidgets.QWidget):
         else:
             img = QtGui.QImage(self.frames[self.current_frame], w, h, QtGui.QImage.Format_RGB888)
         self.img_label.setPixmap(QtGui.QPixmap.fromImage(img))
-        self.current_frame -= 60 # frame jump back by 60 frames
 
-        # re-initialize
-        self.motion_detector = MotionDetector(self.current_frame, 5, 0.05, 0.05, 3, 3)
-
+        drawn_img = self.draw_bbox_line(img)
+        self.img_label.setPixmap(drawn_img)
+        
     @QtCore.Slot()
     def on_move(self, pos):
         self.current_frame = pos
         h, w, c = self.frames[self.current_frame].shape
+
+        # update objects
+        self.motion_detector.update_tracking(self.current_frame)
+
         if c == 1:
             img = QtGui.QImage(self.frames[self.current_frame], w, h, QtGui.QImage.Format_Grayscale8)
         else:

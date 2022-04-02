@@ -1,7 +1,7 @@
 # Hoang Ho - 1001654608
 # CSE 4310-001 Fundamentals of Computer Vision
 # Assignment 3 - Detecting Motion and Kalman Filters
-# Due April 1, 2022 by 11:59 PM
+# Due April 6, 2022 by 11:59 PM
 
 # references: https://dillhoffaj.utasites.cloud/posts/tracking/
 #             https://numpy.org/doc/stable/reference/random/generated/numpy.random.normal.html
@@ -93,6 +93,7 @@ class KalmanFilter:
         new_prediction = self.state_model + K_gain @ (new_measurement - self.state_model)
         new_cov_prediction = self.cov_mtx - K_gain @ (self.cov_mtx)
 
+        # update
         self.history.append(self.state_model)
         self.state_model = new_prediction
         self.cov_mtx = new_cov_prediction

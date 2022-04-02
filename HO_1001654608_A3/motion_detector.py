@@ -1,7 +1,7 @@
 # Hoang Ho - 1001654608
 # CSE 4310-001 Fundamentals of Computer Vision
 # Assignment 3 - Detecting Motion and Kalman Filters
-# Due April 1, 2022 by 11:59 PM
+# Due April 6, 2022 by 11:59 PM
 
 # references: https://github.com/ajdillhoff/CSE4310/blob/main/frame_diff.ipynb
 #             https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.label
@@ -101,11 +101,13 @@ class MotionDetector:
                 # update the prediction
                 if len(matches) != 0:
                     # get index of matched filter
-                    match_index = dist_diff.index(matches[0])
+                    match_index = dist_diff.index(min(matches))
                     self.motion_objs[match_index][1].update(measurement)
                     self.motion_objs[match_index][2] = i
+                    print(f'Updated prediction for motion object {self.motion_objs[match_index][0].label}')
                 else: # add kalman filter
                     if len(self.motion_objs) < self.max_objs:
+                        print(f'Added motion object {candidate.label} to tracked objects')
                         self.motion_objs.append([candidate, KalmanFilter(measurement), i])
 
             i += self.skips # skip number of frames between each detection
