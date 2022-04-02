@@ -84,6 +84,7 @@ class KalmanFilter:
     #
     # Assumed predict() has already been called prior to taking into account new measurement
     def update(self, new_measurement):
+        # calculate the kalman gain
         K_gain = self.cov_mtx @ np.linalg.pinv(self.cov_mtx + np.array([[0.1, 0.1, 0.1, 0.1]
                                                                      ,  [0.1, 0.1, 0.1, 0.1]
                                                                      ,  [0.1, 0.1, 0.1, 0.1]

@@ -119,4 +119,5 @@ class MotionDetector:
             last_updated = self.motion_objs[j][2]
             if new_frame_index-last_updated >= self.frame_hyst:
                 self.motion_objs.pop(j)
+                print(f'Removed motion object {self.motion_objs[j][0].label} from tracked objects')
             j += 1

@@ -23,7 +23,7 @@ from motion_detector import *
 # set the hyperparameters
 FRAME_HYSTERESIS = 120
 MOTION_THRESHOLD = 0.05
-DISTANCE_THRESHOLD = 0.20
+DISTANCE_THRESHOLD = 1
 NUMBER_SKIPS = 3
 MAXIMUM_OBJECTS = 10
 
@@ -84,23 +84,25 @@ class QtDemo(QtWidgets.QWidget):
         painter = QtGui.QPainter(pixmap_image)
         rect_pen = QtGui.QPen(QtCore.Qt.red) # setting pen color to draw rectangle
         rect_pen.setWidth(2) # setting rectangle thickness
-        painter.setPen(rect_pen)
+        line_pen = QtGui.QPen(QtCore.Qt.blue) # setting pen color to draw lines
+        line_pen.setWidth(2) # line thickness
         
         # go through each tracked object and get its bounding box and draw it
         for motion_obj in self.motion_detector.motion_objs:
-            rect_pen.setColor(QtCore.Qt.red)
+            painter.setPen(rect_pen)
             minr, minc, maxr, maxc = motion_obj[0].bbox
             painter.drawRect(minc, minr, maxc-minc, maxr-minr)
             
             # draw line for the history of the tracked object
-            rect_pen.setColor(QtCore.Qt.blue)
             filter_history = motion_obj[1].history
+            painter.setPen(line_pen)
             i = 1
 
             # FOR TESTING
             # print(len(filter_history))
             # print(filter_history)
             
+            # show trail of detections behind each object as it is tracked
             while(i < len(filter_history)):
                 pt1 = filter_history[i-1]
                 x1 = pt1[0]
