@@ -30,6 +30,9 @@ def main():
     model = BaselineModel()
 
     # Add EarlyStopping
+    # automatically monitor validation loss
+    # want to stop if it starts to overfit
+    # patience - how many successive increases (in validation loss) to tolerate before stopping
     early_stop_callback = EarlyStopping(monitor="val_loss",
                                         mode="min",
                                         patience=5)
