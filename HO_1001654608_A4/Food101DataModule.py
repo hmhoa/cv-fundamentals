@@ -23,7 +23,7 @@ from torch.utils.data import random_split, DataLoader
 # for batch samping of dataset, wrap the dataset object in a DataLoader object
 
 PATH_FOOD_DATASET = "./data/food/"
-BATCH_SIZE = 32
+BATCH_SIZE = 25
 WORKERS = 2 # number of CPU threads
 
 class Food101DataModule(pl.LightningDataModule):

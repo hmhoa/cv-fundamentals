@@ -44,43 +44,26 @@ class BasicCNN(pl.LightningModule):
         # strides - amount filter moves over an image as it convolves
         # common kernel size choice is 3x3 or 5x5 so limits number of unrelated features > generalize better
         # using architecture similar to AlexNet
-        # self.features = nn.Sequential(
-        #     nn.Conv2d(in_channels=3, out_channels=8, kernel_size=11),
-        #     nn.ReLU(),
-        #     nn.MaxPool2d(2),
-        #     nn.Conv2d(8, 32, 5),
-        #     nn.ReLU(),
-        #     nn.MaxPool2d(3),
-        #     nn.Conv2d(32, 128, 3),
-        #     nn.ReLU(),
-        #     nn.MaxPool2d(2)
-        # )
-
-        # # densely connected networks
-        # # vectorize the input
-        # self.estimator = nn.Sequential(
-        #     nn.Linear(in_features=1152, out_features=576),
-        #     nn.ReLU(),
-        #     nn.Linear(576, 288),
-        #     nn.ReLU(),
-        #     nn.Linear(288, TARGET_CLASSES)
-        # )
-        
-        #Lenet test
         self.features = nn.Sequential(
-            nn.Conv2d(3, 6, 5), # nn.Conv2d(1, 6, 5) -> nn.Conv2d(3, 6, 5)
+            nn.Conv2d(in_channels=3, out_channels=8, kernel_size=11),
             nn.ReLU(),
             nn.MaxPool2d(2),
-            nn.Conv2d(6, 16, 5),
+            nn.Conv2d(8, 32, 5),
+            nn.ReLU(),
+            nn.MaxPool2d(3),
+            nn.Conv2d(32, 128, 3),
             nn.ReLU(),
             nn.MaxPool2d(2)
         )
 
         # densely connected networks
+        # vectorize the input
         self.estimator = nn.Sequential(
-            nn.Linear(44944, 120), # nn.Linear(256, 120) -> nn.Linear(400, 120)
+            nn.Linear(in_features=1152, out_features=576),
             nn.ReLU(),
-            nn.Linear(120, 101)
+            nn.Linear(576, 288),
+            nn.ReLU(),
+            nn.Linear(288, TARGET_CLASSES)
         )
 
     # how model processes the data
