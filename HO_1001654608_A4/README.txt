@@ -3,7 +3,7 @@
 # Assignment 4 - Convolutional Neural Networks
 # Due May 11, 2022 by 11:59 PM
 
-Packages that may be needed to install:
+Packages that may be needed to be installed:
 	pip install tensorflow
 	pip install pytorch-lightning
 	conda install -c pytorch torchvision=0.12.0
