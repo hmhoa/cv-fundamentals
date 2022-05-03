@@ -34,6 +34,7 @@ class LeNetModel(pl.LightningModule):
             nn.MaxPool2d(2)
         )
 
+        # densely connected networks
         self.estimator = nn.Sequential(
             nn.Linear(400, 120), # nn.Linear(256, 120) -> nn.Linear(400, 120)
             nn.ReLU(),
