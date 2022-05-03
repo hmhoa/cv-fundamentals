@@ -17,33 +17,28 @@ from BasicCNN import BasicCNN
 
 MAX_EPOCHS = 1
 
-def main():
-    # initilize the data module
-    food_data = Food101DataModule()
+# initilize the data module
+food_data = Food101DataModule()
 
-    # initialize model
-    model = BasicCNN()
+# initialize model
+model = BasicCNN()
 
-    # Add EarlyStopping
-    # automatically monitor validation loss
-    # want to stop if it starts to overfit
-    # patience - how many successive increases (in validation loss) to tolerate before stopping
-    early_stop_callback = EarlyStopping(monitor="validation loss",
-                                        mode="min",
-                                        patience=5)
+# Add EarlyStopping
+# automatically monitor validation loss
+# want to stop if it starts to overfit
+# patience - how many successive increases (in validation loss) to tolerate before stopping
+early_stop_callback = EarlyStopping(monitor="validation loss",
+                                    mode="min",
+                                    patience=5)
 
 
-    # Configure Checkpoints
-    checkpoint_callback = ModelCheckpoint(
-        monitor="validation loss",
-        mode="min"
-    )
+# Configure Checkpoints
+checkpoint_callback = ModelCheckpoint(
+    monitor="validation loss",
+    mode="min"
+)
 
-    # initialize trainer
-    trainer = pl.Trainer(gpus=1, callbacks=[early_stop_callback, checkpoint_callback], max_epochs=MAX_EPOCHS)
+# initialize trainer
+trainer = pl.Trainer(gpus=1, callbacks=[early_stop_callback, checkpoint_callback], max_epochs=MAX_EPOCHS)
 
-    trainer.fit(model=model, datamodule=food_data)
-
-if __name__ == "__main__":
-    main()
-
+trainer.fit(model=model, datamodule=food_data)
