@@ -24,7 +24,7 @@ from torch.utils.data import random_split, DataLoader
 
 PATH_FOOD_DATASET = "./data/food/"
 BATCH_SIZE = 25
-WORKERS = 2 # number of CPU threads
+WORKERS = 12 # number of CPU threads
 
 class Food101DataModule(pl.LightningDataModule):
     # data set gives us an object that lets us sample by index and lets us set up different transformations
