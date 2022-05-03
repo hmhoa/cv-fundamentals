@@ -6,7 +6,7 @@
 # references https://github.com/ajdillhoff/CSE6363/blob/main/deep_learning/pl_demo/train_baseline.py
 #            https://github.com/hmh4608/cse4310/blob/main/CSE4310_Example_References/Deep%20Learning/transfer_learning.ipynb
 
-import os
+import sys
 import torch
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -17,12 +17,12 @@ from BasicCNN import BasicCNN
 
 MAX_EPOCHS = 1
 
-def main():
+def main(args):
     # initilize the data module
     food_data = Food101DataModule()
 
     # initialize model
-    model = BasicCNN()
+    model = BasicCNN.load_from_checkpoint(checkpoint_path=args[1])
 
     # Add EarlyStopping
     # automatically monitor validation loss
@@ -45,5 +45,5 @@ def main():
     trainer.fit(model=model, datamodule=food_data)
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)
 
