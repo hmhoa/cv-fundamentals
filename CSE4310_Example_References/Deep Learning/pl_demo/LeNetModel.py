@@ -24,6 +24,7 @@ class LeNetModel(pl.LightningModule):
     def __init__(self):
         super().__init__()
         # image features that are going to be trained when we train the model
+        # 3rd parameters for conv2d is the filter size (kernel?)
         self.features = nn.Sequential(
             nn.Conv2d(3, 6, 5), # nn.Conv2d(1, 6, 5) -> nn.Conv2d(3, 6, 5)
             nn.ReLU(),
