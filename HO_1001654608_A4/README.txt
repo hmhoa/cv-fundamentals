@@ -4,4 +4,8 @@
 # Due May 11, 2022 by 11:59 PM
 
 pip install tensorflow
-conda install -c conda-forge pytorch-lightning
+pip install pytorch-lightning
+conda install -c pytorch torchvision=0.12.0
+
+Adjust batch size in Food101DataModule.py at constant variable BATCH_SIZE
+Adjust number of workers in Food101DataModule.py at constant variable WORKERS

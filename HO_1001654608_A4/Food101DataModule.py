@@ -22,9 +22,9 @@ from torch.utils.data import random_split, DataLoader
 
 # for batch samping of dataset, wrap the dataset object in a DataLoader object
 
-PATH_FOOD_DATASET = "/data/food/"
+PATH_FOOD_DATASET = "./data/food/"
 BATCH_SIZE = 32
-WORKERS = 8 # number of CPU threads
+WORKERS = 2 # number of CPU threads
 
 class Food101DataModule(pl.LightningDataModule):
     # data set gives us an object that lets us sample by index and lets us set up different transformations
@@ -40,11 +40,14 @@ class Food101DataModule(pl.LightningDataModule):
 
         # defining any transforms to be applied on data
         # such as data augmentations or regularization
+        # normalize should be applied before ToTensor (it only works on tensors)
+        # consideration to take : data set is only guarenteed their longest side of any image is going to be 512 (so it could be 512 x 194) - use PadIfNeeded
         self.transform = transforms.Compose([
             # transforms.RandAugment(), 
+             transforms.Resize((224,224)), 
             # transforms.RandomCrop(224), 
-             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]), 
-             transforms.ToTensor()
+             transforms.ToTensor(),
+             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             ])
         
         self.num_classes = 101
@@ -53,8 +56,7 @@ class Food101DataModule(pl.LightningDataModule):
     # point to desired dataset and ask torchvision's Food101 dataset class to download if not found
     def prepare_data(self):
         # download
-        Food101(self.data_dir, train=True, download=True)
-        Food101(self.data_dir, train=False, download=True)
+        Food101(self.data_dir, download=True)
 
     # loads in data from file and prepares pytorch tensor datasets for each split (train, val, test)
     # expects stage arg which is used to separate logic for fit and test
@@ -62,7 +64,7 @@ class Food101DataModule(pl.LightningDataModule):
     # set stage to none to allow for both fit and test related setup to run - if dont mind loading in all datasets at once
     def setup(self, stage=None):
         # loading data after applying the transforms
-        data = Food101(self.data_dir, train=True, transform=self.transform)
+        data = Food101(self.data_dir, transform=self.transform)
 
         dataset_size = len(data)
         train_size = int(dataset_size * 0.95)
@@ -73,11 +75,11 @@ class Food101DataModule(pl.LightningDataModule):
         self.train_data, self.val_data = random_split(data, [train_size, val_size])
 
         # assign test dataset for use in dataloaders
-        self.test_data = Food101(self.data_dir, train=False, transform=self.transform)
+        self.test_data = Food101(self.data_dir, split="test", transform=self.transform)
 
     def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=self.batch_size)
+        return DataLoader(self.train_data, batch_size=self.batch_size, num_workers=self.num_workers)
     def val_dataloader(self):
-        return DataLoader(self.val_data, batch_size=self.batch_size)
+        return DataLoader(self.val_data, batch_size=self.batch_size, num_workers=self.num_workers)
     def test_dataloader(self):
-        return DataLoader(self.test_data, batch_size=self.batch_size)
+        return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=self.num_workers)
