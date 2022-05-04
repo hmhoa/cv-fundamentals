@@ -43,9 +43,9 @@ class AllCN(pl.LightningModule):
         self.features = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=8, kernel_size=3),
             nn.ReLU(),
-            nn.Conv2d(8, 32, 3),
+            nn.Conv2d(8, 32, 3, strides=2),
             nn.ReLU(),
-            nn.Conv2d(32, 128, 5),
+            nn.Conv2d(32, 128, 5, strides=2),
             nn.ReLU(),
             nn.Conv2d(128, 256, 5), 
             nn.ReLU(),
