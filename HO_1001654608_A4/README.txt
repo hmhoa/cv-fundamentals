@@ -34,7 +34,7 @@ Specify the model you want to train by replacing where it says [MODEL_NAME] with
 
 example: python train_model.py BasicCNN will train the BasicCNN model defined by BasicCNN.py
 
-Any regularization is added by using self.transform = transforms.Compose(REGULARIZATION_TRANSFORMS) in Food101DataModule.py
+For Regularization: Regularization is added by using self.transform = transforms.Compose(REGULARIZATION_TRANSFORMS) instead in Food101DataModule.py
 No regularization is using self.transform = transforms.Compose(GENERAL_TRANSFORMS)
 
 You can adjust these transforms under their respective constant variables at the top in Food101DataModule.py
