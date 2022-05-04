@@ -24,22 +24,30 @@ Under train_model.py and test_model.py, you can change the maximum epochs and nu
     - To change the number of gpus to utilize: Adjust constant variable NUM_GPUS
 ---------------------
 [TRAINING THE MODEL]
-To train the model, run train_model.py
+To train the model, run train_model.py like so:
+    python train_model.py [MODEL_NAME]
 
-Specify which model you want to train by changing the model class initialized where the line of code is: model = [model class initialization]
-	- To train the Basic CNN model, initialize using BasicCNN() in place of [model class initialization]
-	- To train the All Convolutional Net, initialize using AllCN()
-	- To train for transfer learning, initialize using TransferLearning()
+Specify the model you want to train by replacing where it says [MODEL_NAME] with one of the following options:
+    - BasicCNN
+    - AllCN
+    - TransferLearning
+
+example: python train_model.py BasicCNN will train the BasicCNN model defined by BasicCNN.py
 
 Any regularization is added by using self.transform = transforms.Compose(REGULARIZATION_TRANSFORMS) in Food101DataModule.py
 No regularization is using self.transform = transforms.Compose(GENERAL_TRANSFORMS)
 
-You can adjust these transforms under their respective constant variables at the top.
+You can adjust these transforms under their respective constant variables at the top in Food101DataModule.py
 ---------------------
 [TESTING THE MODEL]
-To test the model, run test_model.py
+To test the model, run test_model.py like so:
+    python test_model.py [MODEL_NAME] [CHECKPOINT_PATH]
 
-Similar to training the model, specify the model you want to test by changing the model name where the line of code is: model = [model name].load_from_checkpoint(checkpoint_path=args[1])
-	- To test the Basic CNN model, use BasicCNN in place of [model name]
-	- To test the All Convolutional Net, use AllCN
-	- To test for transfer learning, use TransferLearning
+Similar to training the model, specify the model you want to test by replacing where it says [MODEL_NAME] with one of the following options:
+    - BasicCNN
+    - AllCN
+    - TransferLearning
+
+Specify the saved model or checkpoint you want to load from where it says [CHECKPOINT_PATH]
+
+example: python test_model.py BasicCNN "./lightning_logs/version_0/checkpoints/epoch=0-step=2879.ckpt"

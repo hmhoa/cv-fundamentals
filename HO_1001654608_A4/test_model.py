@@ -15,16 +15,30 @@ import pytorch_lightning as pl
 from Food101DataModule import Food101DataModule
 from BasicCNN import BasicCNN
 from AllCN import AllCN
+from TransferLearning import TransferLearning
 
-MAX_EPOCHS = 2
+MAX_EPOCHS = 5
 NUM_GPUS = 1
 
 def main(args):
     # initilize the data module
     food_data = Food101DataModule()
 
+    model_name = args[1]
+    ckpt_path = args[2]
+
     # initialize model
-    model = BasicCNN.load_from_checkpoint(checkpoint_path=args[1])
+    if model_name == "BasicCNN":
+        model = BasicCNN.load_from_checkpoint(checkpoint_path=ckpt_path)
+    elif model_name == "AllCN":
+        model = AllCN.load_from_checkpoint(checkpoint_path=ckpt_path)
+    elif model_name == "TransferLearning":
+        model = TransferLearning.load_from_checkpoint(checkpoint_path=ckpt_path)
+    else:
+        print("No model with that name")
+        sys.exit(2)
+
+    print("Using {model_name} model")
 
     # Add EarlyStopping
     # automatically monitor validation loss
@@ -33,7 +47,6 @@ def main(args):
     # early_stop_callback = EarlyStopping(monitor="validation_loss",
     #                                     mode="min",
     #                                     patience=10)
-
 
     # # Configure Checkpoints
     # checkpoint_callback = ModelCheckpoint(
