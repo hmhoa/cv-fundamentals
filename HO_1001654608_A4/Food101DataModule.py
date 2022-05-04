@@ -81,6 +81,8 @@ class Food101DataModule(pl.LightningDataModule):
         # assign train and val datasets for use in dataloaders
         self.train_data, self.val_data = random_split(data, [train_size, val_size])
 
+        # ensure no augmentations are performed on the validation set if using data augmentation
+
         # assign test dataset for use in dataloaders
         self.test_data = Food101(self.data_dir, split="test", transform=self.transform)
 

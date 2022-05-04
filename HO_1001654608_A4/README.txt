@@ -30,14 +30,10 @@ To train the model, run train_model.py like so:
 Specify the model you want to train by replacing where it says [MODEL_NAME] with one of the following options:
     - BasicCNN
     - AllCN
+    - Regularization
     - TransferLearning
 
 example: python train_model.py BasicCNN will train the BasicCNN model defined by BasicCNN.py
-
-For Regularization: Regularization is added by using self.transform = transforms.Compose(REGULARIZATION_TRANSFORMS) instead in Food101DataModule.py
-No regularization is using self.transform = transforms.Compose(GENERAL_TRANSFORMS)
-
-You can adjust these transforms under their respective constant variables at the top in Food101DataModule.py
 ---------------------
 [TESTING THE MODEL]
 To test the model, run test_model.py like so:
@@ -46,6 +42,7 @@ To test the model, run test_model.py like so:
 Similar to training the model, specify the model you want to test by replacing where it says [MODEL_NAME] with one of the following options:
     - BasicCNN
     - AllCN
+    - Regularization
     - TransferLearning
 
 Specify the saved model or checkpoint you want to load from where it says [CHECKPOINT_PATH]

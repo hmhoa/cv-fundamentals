@@ -17,7 +17,7 @@ from BasicCNN import BasicCNN
 from AllCN import AllCN
 from TransferLearning import TransferLearning
 
-MAX_EPOCHS = 10
+MAX_EPOCHS = 8
 NUM_GPUS = 1
 
 def main(args):

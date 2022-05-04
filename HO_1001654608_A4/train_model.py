@@ -15,9 +15,10 @@ import pytorch_lightning as pl
 from Food101DataModule import Food101DataModule
 from BasicCNN import BasicCNN
 from AllCN import AllCN
+from Regularization import Regularization
 from TransferLearning import TransferLearning
 
-MAX_EPOCHS = 10
+MAX_EPOCHS = 8
 NUM_GPUS = 1
 
 def main(args):
@@ -31,6 +32,8 @@ def main(args):
         model = BasicCNN()
     elif model_name == "AllCN":
         model = AllCN()
+    elif model_name == "Regularization":
+        model = Regularization()
     elif model_name == "TransferLearning":
         model = TransferLearning()
     else:
