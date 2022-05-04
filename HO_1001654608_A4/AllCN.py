@@ -45,11 +45,11 @@ class AllCN(pl.LightningModule):
             nn.ReLU(),
             nn.Conv2d(8, 32, 3, strides=2),
             nn.ReLU(),
-            nn.Conv2d(32, 128, 5, strides=2),
+            nn.Conv2d(32, 64, 5, strides=2),
             nn.ReLU(),
-            nn.Conv2d(128, 256, 5), 
+            nn.Conv2d(64, 128, 3), 
             nn.ReLU(),
-            nn.Conv2d(256, TARGET_CLASSES, 3)
+            nn.Conv2d(128, TARGET_CLASSES, 2)
         )
 
     # how model processes the data
