@@ -58,7 +58,7 @@ class AllCN(pl.LightningModule):
         x = self.features(x)
         x = x.view(x.shape[0], -1)
 
-        return self.estimator(x)
+        return x
 
     def training_step(self, batch, batch_idx):
         x, y = batch # from batch, get inputs and outputs; x = images, y = labels
