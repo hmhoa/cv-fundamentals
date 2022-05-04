@@ -37,7 +37,6 @@ def accuracy(output, target, topk=(1,)):
 class BasicCNN(pl.LightningModule):
     def __init__(self):
         super(BasicCNN, self).__init__()
-        self.save_hyperparameters()
 
         # image features that are going to be trained when we train the model - subnetwork
         # Linear applies linear transformation to incoming data 
