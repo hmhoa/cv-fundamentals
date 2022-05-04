@@ -24,7 +24,19 @@ from torch.utils.data import random_split, DataLoader
 
 PATH_FOOD_DATASET = "./data/food/"
 BATCH_SIZE = 25
-WORKERS = 12 # number of CPU threads
+WORKERS = 4 # number of CPU threads
+
+GENERAL_TRANSFORMS = [
+                        transforms.Resize((224,224)), 
+                        transforms.ToTensor(),
+                        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                     ]
+REGULARIZATION_TRANSFORMS = [
+                                transforms.RandAugment(), 
+                                transforms.RandomCrop(224), 
+                                transforms.ToTensor(),
+                                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                            ]
 
 class Food101DataModule(pl.LightningDataModule):
     # data set gives us an object that lets us sample by index and lets us set up different transformations
@@ -42,13 +54,7 @@ class Food101DataModule(pl.LightningDataModule):
         # such as data augmentations or regularization
         # normalize should be applied before ToTensor (it only works on tensors)
         # consideration to take : data set is only guarenteed their longest side of any image is going to be 512 (so it could be 512 x 194) - use PadIfNeeded
-        self.transform = transforms.Compose([
-            # transforms.RandAugment(), 
-             transforms.Resize((224,224)), 
-            # transforms.RandomCrop(224), 
-             transforms.ToTensor(),
-             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-            ])
+        self.transform = transforms.Compose(GENERAL_TRANSFORMS)
         
         self.num_classes = 101
 
@@ -57,6 +63,7 @@ class Food101DataModule(pl.LightningDataModule):
     def prepare_data(self):
         # download
         Food101(self.data_dir, download=True)
+        Food101(self.data_dir, split="test", download=True)
 
     # loads in data from file and prepares pytorch tensor datasets for each split (train, val, test)
     # expects stage arg which is used to separate logic for fit and test

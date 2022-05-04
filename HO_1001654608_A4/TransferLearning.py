@@ -6,8 +6,11 @@
 # references https://github.com/ajdillhoff/CSE6363/blob/main/deep_learning/pl_demo/LeNetModel.py
 #            https://pytorch-lightning.readthedocs.io/en/1.4.3/common/weights_loading.html
 #            https://github.com/ajdillhoff/CSE6363/blob/main/deep_learning/transfer_learning.ipynb
+#            https://pytorch.org/vision/stable/models.html
 
-# The first network will be a basic CNN. Network should include some number of convolutional layers followed by fully connected layers.
+
+# Transfer learning is an effective way to leverage features learned from another task into a new task.
+# Use a pre-trained model provided by torchvision and fine-tune it on the Food101 dataset.
 
 # pick something that resembles like an Alex net or lenet where you ahve a couple of convolutions - maybe try some net pooling or change pooling size
 
@@ -15,6 +18,9 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
+
+# to grab a pre-trained model
+import torchvision.models as models
 
 TARGET_CLASSES = 101
 LEARNING_RATE = 1e-3
@@ -34,43 +40,21 @@ def accuracy(output, target, topk=(1,)):
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
 
-class BasicCNN(pl.LightningModule):
+class TransferLearning(pl.LightningModule):
     def __init__(self):
-        super(BasicCNN, self).__init__()
-        self.save_hyperparameters()
+        super(TransferLearning, self).__init__()
 
-        # image features that are going to be trained when we train the model - subnetwork
-        # Linear applies linear transformation to incoming data 
-        # conv2d - in_channels, out_channels, filter size
-        # ReLU activation function for each layer - faster training times, less reliant on input normalization; makes the network non-linear (network will be able to learn more complex info and be sure the result function is not a straight line)
-        # pooling - increase rebustness of model to small perturbations - employed after each non-linear activation following a conv layer
-        # MaxPool2d - kernel_size
-        # strides - amount filter moves over an image as it convolves
-        # common kernel size choice is 3x3 or 5x5 so limits number of unrelated features > generalize better
-        # using architecture similar to AlexNet
-        self.features = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=8, kernel_size=11),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Conv2d(8, 32, 5),
-            nn.ReLU(),
-            nn.MaxPool2d(3),
-            nn.Conv2d(32, 128, 3),
-            nn.ReLU(),
-            nn.MaxPool2d(2)
-        )
+        # GoogLeNet is 22 layers deep (27 with pooling layers)
+        # initialize a pretrained model
+        # download weights from their model zoo
+        # trained this on Imagenet, so output layer is 1000 for the 1000 classes in Imagenet
+        pretrained_model = models.googlenet(pretrained=True)
+        num_filters = pretrained_model.fc.in_features
+        layers = list(pretrained_model.children())[:-1] # exclude last layer
+        self.features = nn.Sequential(*layers)
 
-        # densely connected networks
-        # vectorize the input
-        self.estimator = nn.Sequential(
-            nn.Linear(in_features=32768, out_features=1152),
-            nn.ReLU(),
-            nn.Linear(1152, 576),
-            nn.ReLU(),
-            nn.Linear(576, 256),
-            nn.ReLU(),
-            nn.Linear(256, TARGET_CLASSES)
-        )
+        # use pretrained model to classify food101
+        self.estimator = nn.Linear(num_filters, TARGET_CLASSES)
 
     # how model processes the data
     # x = input

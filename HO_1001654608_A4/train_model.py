@@ -14,8 +14,10 @@ import pytorch_lightning as pl
 
 from Food101DataModule import Food101DataModule
 from BasicCNN import BasicCNN
+from AllCN import AllCN
 
-MAX_EPOCHS = 1
+MAX_EPOCHS = 2
+NUM_GPUS = 1
 
 def main():
     # initilize the data module
@@ -28,19 +30,20 @@ def main():
     # automatically monitor validation loss
     # want to stop if it starts to overfit
     # patience - how many successive increases (in validation loss) to tolerate before stopping
-    early_stop_callback = EarlyStopping(monitor="validation loss",
-                                        mode="min",
-                                        patience=5)
+    # early_stop_callback = EarlyStopping(monitor="validation_loss",
+    #                                     mode="min",
+    #                                     patience=10)
 
 
-    # Configure Checkpoints
-    checkpoint_callback = ModelCheckpoint(
-        monitor="validation loss",
-        mode="min"
-    )
+    # # Configure Checkpoints
+    # checkpoint_callback = ModelCheckpoint(
+    #     monitor="validation_loss",
+    #     mode="min"
+    # )
 
     # initialize trainer
-    trainer = pl.Trainer(gpus=1, callbacks=[early_stop_callback, checkpoint_callback], max_epochs=MAX_EPOCHS)
+    # trainer = pl.Trainer(gpus=NUM_GPUS, callbacks=[early_stop_callback, checkpoint_callback], max_epochs=MAX_EPOCHS)
+    trainer = pl.Trainer(gpus=NUM_GPUS, max_epochs=MAX_EPOCHS)
 
     trainer.fit(model=model, datamodule=food_data)
 

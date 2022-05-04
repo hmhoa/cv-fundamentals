@@ -14,6 +14,14 @@ Under this Food101 Data Module, you can change the dataset download directory, b
 	- To change where the Food101 dataset is downloaded: Adjust constant variable PATH_FOOD_DATASET
 	- To change the batch size: Adjust constant variable BATCH_SIZE
 	- To change the number of workers: Adjust constant variable WORKERS
+
+Under each model definition .py file, you can change the target classes and learning rate:
+    - To change the number of target classes: Adjust constant variable TARGET_CLASSES
+    - To change the learning rate: Adjust constant variable LEARNING_RATE
+
+Under train_model.py and test_model.py, you can change the maximum epochs and number of gpus:
+    - To change the maximum epochs: Adjust constant variable MAX_EPOCHS
+    - To change the number of gpus to utilize: Adjust constant variable NUM_GPUS
 ---------------------
 [TRAINING THE MODEL]
 To train the model, run train_model.py
@@ -23,7 +31,10 @@ Specify which model you want to train by changing the model class initialized wh
 	- To train the All Convolutional Net, initialize using AllCN()
 	- To train for transfer learning, initialize using TransferLearning()
 
-Any regularization is added by adjusting self.transform = transforms.Compose([...]) in Food101DataModule.py
+Any regularization is added by using self.transform = transforms.Compose(REGULARIZATION_TRANSFORMS) in Food101DataModule.py
+No regularization is using self.transform = transforms.Compose(GENERAL_TRANSFORMS)
+
+You can adjust these transforms under their respective constant variables at the top.
 ---------------------
 [TESTING THE MODEL]
 To test the model, run test_model.py
