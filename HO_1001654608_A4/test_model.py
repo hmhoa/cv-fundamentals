@@ -17,7 +17,7 @@ from BasicCNN import BasicCNN
 from AllCN import AllCN
 from TransferLearning import TransferLearning
 
-MAX_EPOCHS = 5
+MAX_EPOCHS = 10
 NUM_GPUS = 1
 
 def main(args):
@@ -38,7 +38,7 @@ def main(args):
         print("No model with that name")
         sys.exit(2)
 
-    print("Using {model_name} model")
+    print(f"Using {model_name} model")
 
     # Add EarlyStopping
     # automatically monitor validation loss
