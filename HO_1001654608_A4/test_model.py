@@ -15,6 +15,7 @@ import pytorch_lightning as pl
 from Food101DataModule import Food101DataModule
 from BasicCNN import BasicCNN
 from AllCN import AllCN
+from Regularization import Regularization
 from TransferLearning import TransferLearning
 
 MAX_EPOCHS = 8
@@ -32,6 +33,8 @@ def main(args):
         model = BasicCNN.load_from_checkpoint(checkpoint_path=ckpt_path)
     elif model_name == "AllCN":
         model = AllCN.load_from_checkpoint(checkpoint_path=ckpt_path)
+    elif model_name == "Regularization":
+        model = Regularization.load_from_checkpoint(checkpoint_path=ckpt_path)
     elif model_name == "TransferLearning":
         model = TransferLearning.load_from_checkpoint(checkpoint_path=ckpt_path)
     else:
