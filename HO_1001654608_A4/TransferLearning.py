@@ -12,8 +12,6 @@
 # Transfer learning is an effective way to leverage features learned from another task into a new task.
 # Use a pre-trained model provided by torchvision and fine-tune it on the Food101 dataset.
 
-# pick something that resembles like an Alex net or lenet where you ahve a couple of convolutions - maybe try some net pooling or change pooling size
-
 import torch
 from torch import nn
 import torch.nn.functional as F
