@@ -49,10 +49,10 @@ class Regularization(pl.LightningModule):
             nn.Conv2d(in_channels=3, out_channels=8, kernel_size=11),
             nn.ReLU(),
             nn.MaxPool2d(2),
-            nn.Conv2d(8, 32, 5),
+            nn.Conv2d(8, 11, 5),
             nn.ReLU(),
             nn.MaxPool2d(3),
-            nn.Conv2d(32, 128, 3),
+            nn.Conv2d(11, 24, 3),
             nn.ReLU(),
             nn.MaxPool2d(2)
         )
@@ -60,15 +60,15 @@ class Regularization(pl.LightningModule):
         # densely connected networks
         # vectorize the input
         self.estimator = nn.Sequential(
-            nn.Linear(in_features=32768, out_features=1152),
+            nn.Linear(in_features=6144, out_features=576),
             nn.ReLU(),
-            nn.Linear(1152, 576),
-            nn.ReLU(),
-            nn.Dropout(),
             nn.Linear(576, 256),
             nn.ReLU(),
             nn.Dropout(),
-            nn.Linear(256, TARGET_CLASSES)
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Dropout(),
+            nn.Linear(128, TARGET_CLASSES)
         )
 
     # how model processes the data
