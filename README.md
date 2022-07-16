@@ -11,7 +11,7 @@ This directory contains examples and demos from https://github.com/ajdillhoff th
 
 ## Image Classification
 Image classification on the [Food101 data set](https://data.vision.ee.ethz.ch/cvl/datasets_extra/food-101/) with deep learning. The code utilizes PyTorch Lightning to create 3 different categories of networks:
-- Convoutional neural network
+- Convolutional neural network
 - All convolutional neural network
 - Transfer learning
 
