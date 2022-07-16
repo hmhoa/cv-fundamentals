@@ -1,6 +1,6 @@
 # Computer Vision Fundamentals
 
-Assignments/Projects from CSE4310 Fundamentals of Computer Vision. Details on each project and its requirements can be found within _assignment[#].pdf_ files. NumPy and scikit-image are primarily used within the code.
+Assignments/Projects from CSE4310 Fundamentals of Computer Vision. Details on each project and its requirements can be found within the _assignment[#].pdf_ files. NumPy and scikit-image are primarily used within the code.
 
 ## requirements.yml
 requirements.yml file contains the dependencies and packages within the virtual environment used within Anaconda for each project. 
