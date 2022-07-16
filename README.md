@@ -1,4 +1,4 @@
-# CSE4310
+# Computer Vision Fundamentals
 
 Assignments/Projects from CSE4310 Fundamentals of Computer Vision. Details on each project and its requirements can be found within _assignment[#].pdf_ files. NumPy and scikit-image are primarily used within the code.
 
