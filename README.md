@@ -3,8 +3,8 @@
 Assignments/Projects from CSE4310 Fundamentals of Computer Vision. Details on each project and its requirements can be found within the _assignment[#].pdf_ files. NumPy and scikit-image are primarily used within the code.
 
 ## requirements.yml
-requirements.yml file contains the dependencies and packages within the virtual environment used within Anaconda for each project. 
-use `conda env create -f requirements.yml` to create the environment based on that yaml file.
+requirements.yml file contains the dependencies and packages within the virtual environment used with Anaconda for each project. 
+Use `conda env create -f requirements.yml` to create the environment based on that yaml file.
 
 ## CSE4310 Example References
 This directory contains examples and demos from https://github.com/ajdillhoff that may be referenced throughout each project.
