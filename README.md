@@ -10,7 +10,7 @@ Use `conda env create -f requirements.yml` to create the environment based on th
 This directory contains examples and demos from https://github.com/ajdillhoff that may be referenced throughout each project.
 
 ## Image Classification
-Image classification on the Food101 dataset with deep learning. The code utilizes PyTorch Lightning to create 3 different categories of networks:
+Image classification on the [Food101 data set](https://data.vision.ee.ethz.ch/cvl/datasets_extra/food-101/) with deep learning. The code utilizes PyTorch Lightning to create 3 different categories of networks:
 - Convoutional neural network
 - All convolutional neural network
 - Transfer learning
